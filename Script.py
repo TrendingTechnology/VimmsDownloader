@@ -1,7 +1,10 @@
+
+from typing import List
 import requests
 from bs4 import BeautifulSoup
 import sys
-selections = [
+
+selections: list[dict[int, str]] = [
     {0: 'NES'},
     {1: 'Genesis'},
     {2: 'SNES'},
@@ -22,7 +25,33 @@ selections = [
     {17: 'PSP'},
 ]
 
-print('Welcome to the Vimm\'s Layer Download Script')
+
+class Config:
+    def __init__(self, Selections: List[str] = [], All: bool = False, Extract: bool = False):
+        self.Selections = Selections
+        self.All = All
+        self.Extract = Extract
+
+
+class ROM:
+    def __init__(self, Name: str, URI: str):
+        self.Name = Name
+        self.URI = URI
+
+
+class SectionofROMs:
+    def __init__(self, Section: str, ROMS: List[ROM]):
+        self.Section = Section
+        self.ROMS = ROMS
+
+
+class BulkSystemROMS:
+    def __init__(self, Sections: List[SectionofROMs], System: str):
+        self.System = System
+        self.Sections = Sections
+
+
+print('Welcome to the Vimm\'s Lair Download Script')
 print('Please use responsibily, I am not liable for any damages, or legal issues caused by using this script')
 print('Press Enter to download all of Vimm\'s roms or select from the following of what systems you would like')
 print('Enter q when finished')
@@ -31,10 +60,12 @@ for x in range(0, 9):
     print(
         f'{x:5d} ==> {selections[x][x]:15} | {x+9:5d} ==> {selections[x+9][x+9]:10}')
 
-inputs = []
+inputs: List[str] = []
+config = Config()
 while True:
     userinput = sys.stdin.readline()
     if(userinput == '\n' and len(inputs) == 0):
+        config.All = True
         break
     if(userinput == 'q\n'):
         break
@@ -44,16 +75,34 @@ while True:
         else:
             print('Not a selection')
             print('Please select a value from the list')
-
     except ValueError:
         print('Please select a value from the list')
+        continue
+config.Selections = inputs
+
+print('Would you like to automatically extract and delete archives after download? (Y/n)')
+print('Default is \'y\'')
+while True:
+    userinput = sys.stdin.readline()
+    if(userinput == '\n'):
+        config.Extract = True
+        break
+    if(userinput.lower() == 'y\n'):
+        config.Extract = True
+        break
+    if(userinput.lower() == 'n\n'):
+        config.Extract = False
+        break
+    if((userinput.lower() != 'n\n') and userinput.lower() != 'y\n'):
+        print('Not a selection')
+        print('Please Select Y/n')
         continue
 
 
 def GetROMDownloadURL(url: str):
     try:
         page = requests.get(url)
-        soup = BeautifulSoup(page.content, "html.parser")
+        soup = BeautifulSoup(page.content, 'html.parser')
         result = soup.find(id='download_form')
         result = result.find(attrs={'name': 'mediaId'})
         result = result['value']
@@ -64,12 +113,58 @@ def GetROMDownloadURL(url: str):
         print(e)
 
 
-def GetIdvROMHomeURL(system: str):
-    romurls = []
+def GetSubSectionLetterFromStr(subsection: str):
+    number = '&section=number'
+    if number in subsection.lower():
+        return 'number'
+    else:
+        return subsection[-1]
+
+
+def GetSectionofROMS(section: str):
+    roms: List[ROM] = []
+    try:
+        page = requests.get('https://vimm.net/vault/' + section)
+        soup = BeautifulSoup(page.content, 'html.parser')
+        result = soup.find(
+            'table', {'class': 'rounded centered cellpadding1 hovertable'})
+        for j in result.contents:
+            if j != '\n':
+                newsoup = BeautifulSoup(str(j), 'html.parser')
+                odd = newsoup.find(attrs={'class': 'odd'})
+                even = newsoup.find(attrs={'class': 'even'})
+                if(odd is not None):
+                    resultsoup = BeautifulSoup(
+                        str(odd.contents[0]), 'html.parser')
+                    result = resultsoup.find('a', href=True)
+                    name = result.contents[0]
+                    result = result['href']
+                    rom = ROM(name, result)
+                    roms.append(rom)
+                    odd = None
+                if(even is not None):
+                    resultsoup = BeautifulSoup(
+                        str(even.contents[0]), 'html.parser')
+                    result = resultsoup.find('a', href=True)
+                    name = result.contents[0]
+                    result = result['href']
+                    rom = ROM(name, result)
+                    roms.append(rom)
+                    even = None
+        return roms
+    except:
+        e = sys.exc_info()[0]
+        print('Failed on getting ROM ID')
+        print(e)
+
+
+def GetAllSystemROMS(system: str):
+    sectionroms: List[SectionofROMs] = []
     sectionurls = [f'?p=list&system={system}&section=number', f'{system}/a', f'{system}/b', f'{system}/c', f'{system}/d', f'{system}/e', f'{system}/f', f'{system}/g', f'{system}/h', f'{system}/i', f'{system}/j', f'{system}/k', f'{system}/l',
                    f'{system}/m', f'{system}/n', f'{system}/o', f'{system}/p', f'{system}/q', f'{system}/r', f'{system}/s', f'{system}/t', f'{system}/u', f'{system}/v', f'{system}/w', f'{system}/x', f'{system}/y', f'{system}/z']
     for x in sectionurls:
-        print('')
-
-
-GetROMDownloadURL('https://vimm.net/vault/6')
+        roms: List[ROM] = GetSectionofROMS(x)
+        section: SectionofROMs = SectionofROMs(x, roms)
+        sectionroms.append(section)
+    SystemROMS: BulkSystemROMS = BulkSystemROMS(sectionroms, system)
+    return SystemROMS
