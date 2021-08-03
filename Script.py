@@ -380,15 +380,18 @@ def ExtractFile(path: str, name: str):
     fullpath = os.path.join(path, name)
     basefilename = re.findall(r'(.+?)(\.[^.]*$|$)', name)
     basefilename = str(basefilename[0][0])
-    filetype = re.findall(r'((?:zip|7zip))', fullpath)
-    if str(filetype[0]).lower() == 'zip':
-        with(zipfile.ZipFile(fullpath, 'r')) as zip:
-            dirpath: str = CreateDirectoryForROM(basefilename, path)
-            zip.extractall(os.path.join(dirpath))
-    if str(filetype[0]).lower() == '7zip':
-        with py7zr.SevenZipFile(fullpath, mode='r') as z:
-            dirpath: str = CreateDirectoryForROM(basefilename, path)
-            z.extractall(dirpath)
+    filetype = re.findall(r'((?:zip|7z))', fullpath)
+    try:
+        if str(filetype[0]).lower() == 'zip':
+            with(zipfile.ZipFile(fullpath, 'r')) as zip:
+                dirpath: str = CreateDirectoryForROM(basefilename, path)
+                zip.extractall(os.path.join(dirpath))
+        if str(filetype[0]).lower() == '7z':
+            with py7zr.SevenZipFile(fullpath, mode='r') as z:
+                dirpath: str = CreateDirectoryForROM(basefilename, path)
+                z.extractall(dirpath)
+    except:
+        pass
 
 
 def DeleteFile(path: str, name: str):
