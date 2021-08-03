@@ -1,5 +1,4 @@
 from typing import List
-
 from py7zr.archiveinfo import FilesInfo
 from tqdm import tqdm
 import re
@@ -33,6 +32,27 @@ selections: list[dict[int, str]] = [
     {17: 'PSP'},
 ]
 
+selectiontouri: dict[str, str] = {
+    'NES': 'NES',
+    'Genesis': 'Genesis',
+    'SNES': 'SNES',
+    'Saturn': 'Saturn',
+    'Playstation': 'PS1',
+    'N64': 'N64',
+    'Dreamcast': 'Dreamcast',
+    'Playstation-2': 'PS2',
+    'Xbox': 'Xbox',
+    'Gamecube': 'GameCube',
+    'Playstation-3': 'PS3',
+    'Wii': 'Wii',
+    'WiiWare': 'WiiWare',
+    'Game-Boy': 'GB',
+    'Game-Boy-Color': 'GBC',
+    'Game-Boy-Advanced': 'GBA',
+    'Nintendo-DS': 'DS',
+    'PSP': 'PSP',
+}
+
 
 class Config:
     def __init__(self, Selections: List[str] = [], All: bool = False, Extract: bool = False, Search: bool = False, Bulk: bool = False):
@@ -53,6 +73,12 @@ class SectionofROMs:
     def __init__(self, Section: str, ROMS: List[ROM]):
         self.Section = Section
         self.ROMS = ROMS
+
+
+class SearchSelection:
+    def __init__(self, System: str = '', Query: str = ''):
+        self.System = System
+        self.Query = Query
 
 
 class BulkSystemROMS:
@@ -160,6 +186,68 @@ async def DownloadFile(pageurl: str, downloadurl: str, path: str):
             break
 
 
+def GetSearchSelection():
+    searchselection: SearchSelection = SearchSelection()
+    print('\nPlease select what system you want to search')
+    for x in range(0, 9):
+        print(
+            f'{x:5d} ==> {selections[x][x]:15} | {x+9:5d} ==> {selections[x+9][x+9]:10}')
+    while True:
+        userinput = sys.stdin.readline()
+        try:
+            if(not(int(userinput) > 17 or int(userinput) < 0)):
+                searchselection.System = selections[int(
+                    userinput)][int(userinput)]
+                break
+            else:
+                print('Not a selection')
+                print('Please select a value from the list')
+        except ValueError:
+            print('Please select a value from the list')
+            continue
+    print('Input what rom you want to search for')
+    searchselection.Query = sys.stdin.readline()
+    return searchselection
+
+
+def GetSearchSection(searchselection: SearchSelection):
+    roms: List[ROM] = []
+    try:
+        page = requests.get(
+            f'https://vimm.net/vault/?p=list&system={selectiontouri[searchselection.System]}&q={searchselection.Query}')
+        soup = BeautifulSoup(page.content, 'html.parser')
+        result = soup.find(
+            'table', {'class': 'rounded centered cellpadding1 hovertable'})
+        for j in result.contents:
+            if j != '\n':
+                newsoup = BeautifulSoup(str(j), 'html.parser')
+                odd = newsoup.find(attrs={'class': 'odd'})
+                even = newsoup.find(attrs={'class': 'even'})
+                if(odd is not None):
+                    resultsoup = BeautifulSoup(
+                        str(odd.contents[0]), 'html.parser')
+                    result = resultsoup.find('a', href=True)
+                    name = result.contents[0]
+                    result = result['href']
+                    rom = ROM(name, result)
+                    roms.append(rom)
+                    odd = None
+                if(even is not None):
+                    resultsoup = BeautifulSoup(
+                        str(even.contents[0]), 'html.parser')
+                    result = resultsoup.find('a', href=True)
+                    name = result.contents[0]
+                    result = result['href']
+                    rom = ROM(name, result)
+                    roms.append(rom)
+                    even = None
+        return roms
+    except:
+        e = sys.exc_info()[0]
+        print('Failed on getting ROM ID')
+        print(e)
+
+
 def PrintWelcome():
     print(r"""
     _   _ _                          _           _     ______                    _                 _
@@ -171,18 +259,12 @@ def PrintWelcome():
         """)
     print('Welcome to the Vimm\'s Lair Download Script')
     print('Please use responsibily, I am not liable for any damages, or legal issues caused by using this script')
-    print('Enter q when finished\n\n')
-    for x in range(0, 9):
-        print(
-            f'{x:5d} ==> {selections[x][x]:15} | {x+9:5d} ==> {selections[x+9][x+9]:10}')
 
 
 def GetProgramMode():
     config: Config = Config()
-    print('Would you like to do bulk download or search for specific?')
+    print('\nWould you like to do bulk download or search for specific?')
     print('(B/S)')
-    print('B for Bulk')
-    print('S for Search')
     print('Default is \'B\'')
     while True:
         userinput = sys.stdin.readline()
@@ -204,6 +286,10 @@ def GetProgramMode():
 
 def GetBulkSelections(config: Config):
     print('Press Enter to download all of Vimm\'s roms or select from the following of what systems you would like')
+    print('Enter \'q\' when finished if choosing specific consoles')
+    for x in range(0, 9):
+        print(
+            f'{x:5d} ==> {selections[x][x]:15} | {x+9:5d} ==> {selections[x+9][x+9]:10}')
     while True:
         userinput = sys.stdin.readline()
         if(userinput == '\n' and len(config.Selections) == 0):
@@ -249,7 +335,8 @@ def RunSelectedProgram(config: Config):
         config: Config = GetBulkSelections(config)
 
     if config.Search:
-        print('placeholder')
+        selection: SearchSelection = GetSearchSelection()
+        roms: List[ROM] = GetSearchSection(selection)
     return config
 
 
@@ -263,6 +350,10 @@ def ExtractFile(path: str, name: str):
         with py7zr.SevenZipFile(name, mode='r') as z:
             for i in tqdm(z.extractall(path), desc=name):
                 pass
+
+
+def DeleteFile(path: str, name: str):
+    os.remove(os.path.join(path, name))
 
 
 def main():
