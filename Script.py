@@ -1,3 +1,4 @@
+import json
 from typing import List
 from py7zr.archiveinfo import FilesInfo
 from tqdm import tqdm
@@ -63,7 +64,7 @@ class Config:
         self.Bulk = Bulk
 
 
-class ROM:
+class ROM():
     def __init__(self, Name: str, URI: str):
         self.Name = Name
         self.URI = URI
@@ -89,7 +90,7 @@ class BulkSystemROMS:
 
 def GetROMDownloadURL(url: str):
     try:
-        page = requests.get(url)
+        page = requests.get('https://vimm.net/' + url)
         soup = BeautifulSoup(page.content, 'html.parser')
         result = soup.find(id='download_form')
         result = result.find(attrs={'name': 'mediaId'})
@@ -158,7 +159,7 @@ def GetAllSystemROMS(system: str):
     return SystemROMS
 
 
-async def DownloadFile(pageurl: str, downloadurl: str, path: str):
+def DownloadFile(pageurl: str, downloadurl: str, path: str):
     x = 0
     while True:
         agent: FakeUserAgent = UserAgent()
@@ -167,23 +168,23 @@ async def DownloadFile(pageurl: str, downloadurl: str, path: str):
             'Accept-Encoding': 'gzip, deflate, br',
             'Connection': 'keep-alive',
             'User-Agent': agent.random,
-            'Referer': f'https://vimm.net/vault/{pageurl}'
+            'Referer': f'https://vimm.net/vault{pageurl}'
         }
-        file: Response = await requests.get(
-            downloadurl, headers=headers, allow_redirects=True)
+        file: Response = requests.get(
+            f'https://download2.vimm.net/download/?mediaId={downloadurl}', headers=headers, allow_redirects=True)
         if file.status_code == 200:
             filename: str = file.headers['Content-Disposition']
             filename: List[str] = re.findall(r'"([^"]*)"', filename)
             filename: str = filename[0]
             fullpath: str = os.path.join(path, filename)
             open(fullpath, 'wb').write(file.content)
+            return filename
+        if x == 4:
+            print(f'5 Requests made to {downloadurl} and failed')
             break
         if file.status_code != 200:
             x += 1
             continue
-        if x > 5:
-            print(f'5 Requests made to {downloadurl} and failed')
-            break
 
 
 def GetSearchSelection():
@@ -277,9 +278,9 @@ def GetProgramMode():
         if(userinput.lower() == 's\n'):
             config.Search = True
             break
-        if((userinput.lower() != 'n\n') and userinput.lower() != 'y\n'):
+        else:
             print('Not a selection')
-            print('Please Select Y/n')
+            print('Please Select B/s')
             continue
     return config
 
@@ -330,30 +331,122 @@ def GetExtractionStatus(config: Config):
     return config
 
 
-def RunSelectedProgram(config: Config):
-    if config.Bulk:
-        config: Config = GetBulkSelections(config)
+def PrintSearchResults(roms: List[ROM]):
+    count = 0
+    print('\nSelect which roms you would like to download and then enter \'d\'')
+    for x in roms:
+        print(
+            f'{count:5d} ==> {x.Name:15}')
+        count += 1
 
-    if config.Search:
-        selection: SearchSelection = GetSearchSelection()
-        roms: List[ROM] = GetSearchSection(selection)
-    return config
+
+def GetSearchResultInput(roms: List[ROM]):
+    downloadselroms: List[int] = []
+    print('\nSelect which roms you would like to download and then enter \'d\'')
+    while True:
+        userinput = sys.stdin.readline()
+        if(userinput == '\n'):
+            print('Please select a rom or press \'q\' to quit program')
+            continue
+        if(userinput == 'q\n'):
+            exit()
+        if(userinput == 'd\n'):
+            return downloadselroms
+        try:
+            if(not(int(userinput) > len(roms) or int(userinput) < 0)):
+                downloadselroms.append(int(userinput))
+            else:
+                print('Not a selection')
+                print('Please select a value from the list')
+        except ValueError:
+            print('Please select a value from the list')
+            continue
+
+
+def DownloadSearchResults(downloads: List[int], roms: List[ROM]):
+    downloadnames: List[str] = []
+    for x in downloads:
+        downloadname = DownloadFile(
+            roms[x].URI, GetROMDownloadURL(roms[x].URI), '.')
+        downloadnames.append(downloadname)
+    return downloadnames
 
 
 def ExtractFile(path: str, name: str):
-    filetype = re.findall(r'((?:zip|7zip))', path)
-    if str(filetype[0]).lower == 'zip':
-        with(zipfile.ZipFile(name, 'r')) as zip:
-            for i in tqdm(zip.extractall(path), desc=name):
-                pass
-    if str(filetype[0]).lower == '7zip':
-        with py7zr.SevenZipFile(name, mode='r') as z:
-            for i in tqdm(z.extractall(path), desc=name):
-                pass
+    fullpath = os.path.join(path, name)
+    basefilename = re.findall(r'(.+?)(\.[^.]*$|$)', name)
+    basefilename = str(basefilename[0][0])
+    filetype = re.findall(r'((?:zip|7zip))', fullpath)
+    if str(filetype[0]).lower() == 'zip':
+        with(zipfile.ZipFile(fullpath, 'r')) as zip:
+            dirpath: str = CreateDirectoryForROM(basefilename, path)
+            zip.extractall(os.path.join(dirpath))
+    if str(filetype[0]).lower() == '7zip':
+        with py7zr.SevenZipFile(fullpath, mode='r') as z:
+            dirpath: str = CreateDirectoryForROM(basefilename, path)
+            z.extractall(dirpath)
 
 
 def DeleteFile(path: str, name: str):
     os.remove(os.path.join(path, name))
+
+
+def CheckIfNeedToReSearch():
+    search: bool = False
+    print('Do you want to search again?(y/N)')
+    while True:
+        userinput = sys.stdin.readline()
+        if(userinput == '\n'):
+            break
+        if(userinput.lower() == 'y\n'):
+            search = True
+            break
+        if(userinput.lower() == 'n\n'):
+            break
+        if((userinput.lower() != 'n\n') and userinput.lower() != 'y\n'):
+            print('Not a selection')
+            print('Please Select Y/n')
+            continue
+    return search
+
+
+def CreateDirectoryForROM(name: str, path: str):
+    newpath: str = os.path.join(path, name)
+    os.mkdir(newpath)
+    return newpath
+
+
+def RunSearchLoop(config: Config):
+    while True:
+        selection: SearchSelection = GetSearchSelection()
+        roms: List[ROM] = GetSearchSection(selection)
+        PrintSearchResults(roms)
+        restart: bool = CheckIfNeedToReSearch()
+        if restart:
+            continue
+        downloads: List[int] = GetSearchResultInput(roms)
+        filenames = DownloadSearchResults(downloads, roms)
+        if config.Extract:
+            ExtractandDeleteSearchResults(filenames)
+        restart: bool = CheckIfNeedToReSearch()
+        if restart:
+            continue
+        else:
+            exit()
+
+
+def ExtractandDeleteSearchResults(downloads: List[str]):
+    for x in downloads:
+        ExtractFile('.', x)
+        DeleteFile('.', x)
+
+
+def RunSelectedProgram(config: Config):
+    if config.Bulk:
+        config: Config = GetBulkSelections(config)
+    if config.Search:
+        RunSearchLoop(config)
+    return config
 
 
 def main():
