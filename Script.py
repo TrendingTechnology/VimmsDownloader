@@ -1,7 +1,6 @@
-import json
+from threading import Thread
 from typing import List
 from py7zr.archiveinfo import FilesInfo
-from tqdm import tqdm
 import re
 from fake_useragent.fake import FakeUserAgent, UserAgent
 import requests
@@ -353,7 +352,7 @@ def GetSearchResultInput(roms: List[ROM]):
         if(userinput == 'd\n'):
             return downloadselroms
         try:
-            if(not(int(userinput) > len(roms) or int(userinput) < 0)):
+            if(not(int(userinput) > len(roms) - 1 or int(userinput) < 0)):
                 downloadselroms.append(int(userinput))
             else:
                 print('Not a selection')
@@ -363,13 +362,18 @@ def GetSearchResultInput(roms: List[ROM]):
             continue
 
 
-def DownloadSearchResults(downloads: List[int], roms: List[ROM]):
-    downloadnames: List[str] = []
+def DownloadSearchResults(downloads: List[int], roms: List[ROM], config: Config):
+    threads = []
     for x in downloads:
         downloadname = DownloadFile(
             roms[x].URI, GetROMDownloadURL(roms[x].URI), '.')
-        downloadnames.append(downloadname)
-    return downloadnames
+        if config.Extract:
+            t = Thread(target=ExtractandDeleteSearchResults,
+                       args=(downloadname,))
+            t.start()
+            threads.append(t)
+    for t in threads:
+        t.join()
 
 
 def ExtractFile(path: str, name: str):
@@ -425,9 +429,8 @@ def RunSearchLoop(config: Config):
         if restart:
             continue
         downloads: List[int] = GetSearchResultInput(roms)
-        filenames = DownloadSearchResults(downloads, roms)
-        if config.Extract:
-            ExtractandDeleteSearchResults(filenames)
+        DownloadSearchResults(downloads, roms, config)
+        print('Done!')
         restart: bool = CheckIfNeedToReSearch()
         if restart:
             continue
@@ -435,10 +438,9 @@ def RunSearchLoop(config: Config):
             exit()
 
 
-def ExtractandDeleteSearchResults(downloads: List[str]):
-    for x in downloads:
-        ExtractFile('.', x)
-        DeleteFile('.', x)
+def ExtractandDeleteSearchResults(download: str):
+    ExtractFile('.', download)
+    DeleteFile('.', download)
 
 
 def RunSelectedProgram(config: Config):
