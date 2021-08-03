@@ -25,10 +25,12 @@ selections: list[dict[int, str]] = [
 
 
 class __Config:
-    def __init__(self, Selections: List[str] = [], All: bool = False, Extract: bool = False):
+    def __init__(self, Selections: List[str] = [], All: bool = False, Extract: bool = False, Search: bool = False, Bulk: bool = False):
         self.Selections = Selections
         self.All = All
         self.Extract = Extract
+        self.Search = Search
+        self.Bulk = Bulk
 
 
 def __CreateAlphaNumStructure(path: str, system: str):
@@ -92,7 +94,7 @@ def __CreateAllWHome(path):
 
 def __CreateSelWHome(path, userselections: List[str]):
     for x in userselections:
-        if not __CheckIfSystemDirCreated(path, userselections[int(x)][int(x)]):
+        if not __CheckIfSystemDirCreated(path, selections[int(x)][int(x)]):
             __CreateROMSystemDir(path, selections[int(x)][int(x)])
             __CreateAlphaNumStructure(path, selections[int(x)][int(x)])
 
@@ -100,7 +102,7 @@ def __CreateSelWHome(path, userselections: List[str]):
 def __CreateSelNoHome(path, userselections: List[str]):
     __CreateROMHomeDir(path)
     for x in userselections:
-        if not __CheckIfSystemDirCreated(path, userselections[int(x)][int(x)]):
+        if not __CheckIfSystemDirCreated(path, selections[int(x)][int(x)]):
             __CreateROMSystemDir(path, selections[int(x)][int(x)])
             __CreateAlphaNumStructure(path, selections[int(x)][int(x)])
 
