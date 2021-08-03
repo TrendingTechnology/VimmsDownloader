@@ -5,8 +5,8 @@ import requests
 from bs4 import BeautifulSoup
 import sys
 import os
+import filestructure
 from requests.models import Response
-
 selections: list[dict[int, str]] = [
     {0: 'NES'},
     {1: 'Genesis'},
@@ -177,88 +177,6 @@ def GetAllSystemROMS(system: str):
     return SystemROMS
 
 
-def CreateAlphaNumStructure(path: str, system: str):
-    dirnames: list[str] = ['#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-                           'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-    try:
-        for x in dirnames:
-            os.mkdir(os.path.join(path, 'ROMS', system, x))
-    except:
-        e = sys.exc_info()[0]
-        print('Failed Creating AlphaNum Structure')
-        print(e)
-
-
-def CreateROMHomeDir(path: str):
-    try:
-        os.mkdir(os.path.join(path, 'ROMS'))
-    except:
-        e = sys.exc_info()[0]
-        print('Failed Creating Home Directory')
-        print(e)
-
-
-def CreateROMSystemDir(path: str, system: str):
-    try:
-        os.mkdir(os.path.join(path, 'ROMS', system))
-    except:
-        e = sys.exc_info()[0]
-        print('Failed Creating Home Directory')
-        print(e)
-
-
-def CheckIfHomeDirCreated(path: str):
-    for x in os.listdir(path):
-        if x == 'ROMS':
-            return True
-
-
-def CheckIfSystemDirCreated(path: str, system: str):
-    for x in os.listdir(os.path.join(path, 'ROMS')):
-        if x == system:
-            return True
-
-
-def CreateAllNoHome(path):
-    for x in selections:
-        for value in x:
-            CreateROMHomeDir(path)
-            CreateROMSystemDir(path, x[value])
-            CreateAlphaNumStructure(path, x[value])
-
-
-def CreateAllWHome(path):
-    for x in selections:
-        for value in x:
-            CreateROMSystemDir(path, x[value])
-            CreateAlphaNumStructure(path, x[value])
-
-
-def CreateSelWHome(path):
-    CreateROMSystemDir(path, selections[int(x)][int(x)])
-    CreateAlphaNumStructure(path, selections[int(x)][int(x)])
-
-
-def CreateSelNoHome(path):
-    CreateROMSystemDir(path, selections[int(x)][int(x)])
-    CreateAlphaNumStructure(path, selections[int(x)][int(x)])
-
-
-# Fix this mess later
-def CreateDirectoryStructure(Config: Config):
-    path: str = os.getcwd()
-    if config.All:
-        if not CheckIfHomeDirCreated(path):
-            CreateAllNoHome(path)
-        if CheckIfHomeDirCreated(path):
-            CreateAllWHome(path)
-    if not Config.All:
-        if CheckIfHomeDirCreated(path):
-            CreateSelWHome(path)
-        if not CheckIfHomeDirCreated(path):
-            CreateSelNoHome(path)
-
-
 def DownloadFile(pageurl: str, downloadurl: str, path: str):
     agent: FakeUserAgent = UserAgent()
     headers: dict[str, str] = {
@@ -273,5 +191,6 @@ def DownloadFile(pageurl: str, downloadurl: str, path: str):
     filename: str = file.headers['Content-Disposition']
     filename: List[str] = re.findall(r'"([^"]*)"', filename)
     filename: str = filename[0]
-    fullpath:str = os.path.join(path, filename)
+    fullpath: str = os.path.join(path, filename)
     open(fullpath, 'wb').write(file.content)
+
