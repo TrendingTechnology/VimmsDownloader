@@ -1,8 +1,11 @@
-
 from typing import List
+import re
+from fake_useragent.fake import FakeUserAgent, UserAgent
 import requests
 from bs4 import BeautifulSoup
 import sys
+import os
+from requests.models import Response
 
 selections: list[dict[int, str]] = [
     {0: 'NES'},
@@ -12,16 +15,16 @@ selections: list[dict[int, str]] = [
     {4: 'Playstation'},
     {5: 'N64'},
     {6: 'Dreamcast'},
-    {7: 'Playstation 2'},
+    {7: 'Playstation-2'},
     {8: 'Xbox'},
     {9: 'Gamecube'},
-    {10: 'Playstation 3'},
+    {10: 'Playstation-3'},
     {11: 'Wii'},
     {12: 'WiiWare'},
-    {13: 'Game Boy'},
-    {14: 'Game Boy Color'},
-    {15: 'Game Boy Advanced'},
-    {16: 'Nintendo DS'},
+    {13: 'Game-Boy'},
+    {14: 'Game-Boy-Color'},
+    {15: 'Game-Boy-Advanced'},
+    {16: 'Nintendo-DS'},
     {17: 'PSP'},
 ]
 
@@ -61,7 +64,7 @@ for x in range(0, 9):
         f'{x:5d} ==> {selections[x][x]:15} | {x+9:5d} ==> {selections[x+9][x+9]:10}')
 
 inputs: List[str] = []
-config = Config()
+config: Config = Config()
 while True:
     userinput = sys.stdin.readline()
     if(userinput == '\n' and len(inputs) == 0):
@@ -106,7 +109,11 @@ def GetROMDownloadURL(url: str):
         result = soup.find(id='download_form')
         result = result.find(attrs={'name': 'mediaId'})
         result = result['value']
-        return result
+        test = {
+            'url': result,
+            'thecookie': page.cookies
+        }
+        return test
     except:
         e = sys.exc_info()[0]
         print('Failed on getting ROM ID')
@@ -168,3 +175,103 @@ def GetAllSystemROMS(system: str):
         sectionroms.append(section)
     SystemROMS: BulkSystemROMS = BulkSystemROMS(sectionroms, system)
     return SystemROMS
+
+
+def CreateAlphaNumStructure(path: str, system: str):
+    dirnames: list[str] = ['#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+                           'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+    try:
+        for x in dirnames:
+            os.mkdir(os.path.join(path, 'ROMS', system, x))
+    except:
+        e = sys.exc_info()[0]
+        print('Failed Creating AlphaNum Structure')
+        print(e)
+
+
+def CreateROMHomeDir(path: str):
+    try:
+        os.mkdir(os.path.join(path, 'ROMS'))
+    except:
+        e = sys.exc_info()[0]
+        print('Failed Creating Home Directory')
+        print(e)
+
+
+def CreateROMSystemDir(path: str, system: str):
+    try:
+        os.mkdir(os.path.join(path, 'ROMS', system))
+    except:
+        e = sys.exc_info()[0]
+        print('Failed Creating Home Directory')
+        print(e)
+
+
+def CheckIfHomeDirCreated(path: str):
+    for x in os.listdir(path):
+        if x == 'ROMS':
+            return True
+
+
+def CheckIfSystemDirCreated(path: str, system: str):
+    for x in os.listdir(os.path.join(path, 'ROMS')):
+        if x == system:
+            return True
+
+
+def CreateAllNoHome(path):
+    for x in selections:
+        for value in x:
+            CreateROMHomeDir(path)
+            CreateROMSystemDir(path, x[value])
+            CreateAlphaNumStructure(path, x[value])
+
+
+def CreateAllWHome(path):
+    for x in selections:
+        for value in x:
+            CreateROMSystemDir(path, x[value])
+            CreateAlphaNumStructure(path, x[value])
+
+
+def CreateSelWHome(path):
+    CreateROMSystemDir(path, selections[int(x)][int(x)])
+    CreateAlphaNumStructure(path, selections[int(x)][int(x)])
+
+
+def CreateSelNoHome(path):
+    CreateROMSystemDir(path, selections[int(x)][int(x)])
+    CreateAlphaNumStructure(path, selections[int(x)][int(x)])
+
+
+# Fix this mess later
+def CreateDirectoryStructure(Config: Config):
+    path: str = os.getcwd()
+    if config.All:
+        if not CheckIfHomeDirCreated(path):
+            CreateAllNoHome(path)
+        if CheckIfHomeDirCreated(path):
+            CreateAllWHome(path)
+    if not Config.All:
+        if CheckIfHomeDirCreated(path):
+            CreateSelWHome(path)
+        if not CheckIfHomeDirCreated(path):
+            CreateSelNoHome(path)
+
+
+def DownloadFile(pageurl: str, downloadurl: str, path: str):
+    agent: FakeUserAgent = UserAgent()
+    headers: dict[str, str] = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'User-Agent': agent.random,
+        'Referer': f'https://vimm.net/vault/{pageurl}'
+    }
+    file: Response = requests.get(
+        downloadurl, headers=headers, allow_redirects=True)
+    filename: str = file.headers['Content-Disposition']
+    filename: List[str] = re.findall(r'"([^"]*)"', filename)
+    filename: str = filename[0]
+    fullpath:str = os.path.join(path, filename)
+    open(fullpath, 'wb').write(file.content)
