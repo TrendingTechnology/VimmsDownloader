@@ -4,7 +4,7 @@ import os
 import sys
 from src import models
 
-selections: list[dict[int, str]] = [
+__selections: list[dict[int, str]] = [
     {
         0: 'NES'
     },
@@ -136,7 +136,7 @@ def __check_if_system_dir_created(path: str, system: str):
 def __create_all_no_home(path):
     """Used in bulk mode to create all the directories and sub-directories"""
     __create_rom_home_dir(path)
-    for x in selections:
+    for x in __selections:
         for value in x:
             if not __check_if_system_dir_created(path, x[value]):
                 __create_rom_system_dir(path, x[value])
@@ -146,7 +146,7 @@ def __create_all_no_home(path):
 def __create_all_w_home(path):
     """Used in bulk mode to create all the directories and sub-directories \
             except 'ROMS' Directory"""
-    for x in selections:
+    for x in __selections:
         for value in x:
             if not __check_if_system_dir_created(path, x[value]):
                 __create_rom_system_dir(path, x[value])
@@ -156,18 +156,20 @@ def __create_all_w_home(path):
 def __create_sel_w_home(path, userselections: List[str]):
     """Used in bulk mode when the user only wants selected systems"""
     for x in userselections:
-        if not __check_if_system_dir_created(path, selections[int(x)][int(x)]):
-            __create_rom_system_dir(path, selections[int(x)][int(x)])
-            __create_alpha_num_structure(path, selections[int(x)][int(x)])
+        if not __check_if_system_dir_created(path,
+                                             __selections[int(x)][int(x)]):
+            __create_rom_system_dir(path, __selections[int(x)][int(x)])
+            __create_alpha_num_structure(path, __selections[int(x)][int(x)])
 
 
 def __create_sel_no_home(path, userselections: List[str]):
     """Used in bulk mode when the user only wants selected systems"""
     __create_rom_home_dir(path)
     for x in userselections:
-        if not __check_if_system_dir_created(path, selections[int(x)][int(x)]):
-            __create_rom_system_dir(path, selections[int(x)][int(x)])
-            __create_alpha_num_structure(path, selections[int(x)][int(x)])
+        if not __check_if_system_dir_created(path,
+                                             __selections[int(x)][int(x)]):
+            __create_rom_system_dir(path, __selections[int(x)][int(x)])
+            __create_alpha_num_structure(path, __selections[int(x)][int(x)])
 
 
 def create_directory_structure(config: models.Config, path: str):
@@ -193,8 +195,13 @@ def print_console_list():
     """Public helper to print the consoles listed on Vimms"""
     for x in range(0, 9):
         print(
-            f'{x:5d} ==> {selections[x][x]:15} | {x+9:5d} ==> {selections[x+9][x+9]:10}'
+            f'{x:5d} ==> {__selections[x][x]:15} | {x+9:5d} ==> {__selections[x+9][x+9]:10}'
         )
+
+
+def get_selection_from_num(selection: int):
+    """Returns the specified selection from __selections"""
+    return __selections[selection][selection]
 
 
 def print_welcome():

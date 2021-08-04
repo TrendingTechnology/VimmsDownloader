@@ -17,10 +17,10 @@ from src import helpers
 def get_rom_download_url(url: str):
     """Gets the Download ID for the a specific ROM from the ROMs page url"""
     try:
-        page = requests.get('https://vimm.net/' + url)
-        soup = BeautifulSoup(page.content, 'html.parser')
-        result = soup.find(id='download_form')
-        result = result.find(attrs={'name': 'mediaId'})
+        page: Response = requests.get('https://vimm.net/' + url)
+        soup: BeautifulSoup = BeautifulSoup(page.content, 'html.parser')
+        result: str = soup.find(id='download_form')
+        result: str = result.find(attrs={'name': 'mediaId'})
         result: str = result['value']
         return result
     except:
@@ -32,7 +32,7 @@ def get_rom_download_url(url: str):
 def get_sub_section_letter_from_str(subsection: str):
     """Returns the subsection letter to get the downloaded ROM to the\
             correct alphanumeric directory"""
-    number = '&section=number'
+    number: str = '&section=number'
     if number in subsection.lower():
         return 'number'
     else:
@@ -80,7 +80,7 @@ def get_section_of_roms(section: str):
 def get_all_system_roms(system: str):
     """Used in bulk mode to get the home page URI for every rom on a system"""
     sectionroms: List[models.SectionofROMs] = []
-    sectionurls = [
+    sectionurls: List[str] = [
         f'?p=list&system={system}&section=number', f'{system}/a',
         f'{system}/b', f'{system}/c', f'{system}/d', f'{system}/e',
         f'{system}/f', f'{system}/g', f'{system}/h', f'{system}/i',
@@ -102,7 +102,7 @@ def get_all_system_roms(system: str):
 def download_file(pageurl: str, downloadurl: str, path: str):
     """Downloads one rom from the uri, downloadid\
             downloads to the path director"""
-    x = 0
+    x: int = 0
     while True:
         agent: FakeUserAgent = UserAgent()
         headers: dict[str, str] = {
@@ -143,11 +143,11 @@ def get_search_selection():
     print('\nPlease select what system you want to search')
     helpers.print_console_list()
     while True:
-        userinput = sys.stdin.readline()
+        userinput: str = sys.stdin.readline()
         try:
             if (not (int(userinput) > 17 or int(userinput) < 0)):
-                searchselection.System = helpers.selections[int(userinput)][
-                    int(userinput)]
+                searchselection.System = \
+                    helpers.get_selection_from_num(int(userinput))
                 break
             else:
                 print('Not a selection')
@@ -168,17 +168,17 @@ def get_search_section(searchselection: models.SearchSelection):
             'https://vimm.net/vault/?p=list&system=' +
             f'{helpers.selection_to_uri(searchselection.System)}' +
             f'&q={searchselection.Query}')
-        soup = BeautifulSoup(page.content, 'html.parser')
+        soup: BeautifulSoup = BeautifulSoup(page.content, 'html.parser')
         result = soup.find(
             'table', {'class': 'rounded centered cellpadding1 hovertable'})
         for j in result.contents:
             if j != '\n':
-                newsoup = BeautifulSoup(str(j), 'html.parser')
+                newsoup: BeautifulSoup = BeautifulSoup(str(j), 'html.parser')
                 odd = newsoup.find(attrs={'class': 'odd'})
                 even = newsoup.find(attrs={'class': 'even'})
                 if (odd is not None):
-                    resultsoup = BeautifulSoup(str(odd.contents[0]),
-                                               'html.parser')
+                    resultsoup: BeautifulSoup = BeautifulSoup(
+                        str(odd.contents[0]), 'html.parser')
                     result = resultsoup.find('a', href=True)
                     name = result.contents[0]
                     result = result['href']
@@ -208,7 +208,7 @@ def get_program_mode():
     print('(B/S)')
     print('Default is \'B\'')
     while True:
-        userinput = sys.stdin.readline()
+        userinput: str = sys.stdin.readline()
         if (userinput == '\n'):
             config.Bulk = True
             break
@@ -232,7 +232,7 @@ def get_bulk_selections(config: models.Config):
     print('Enter \'q\' when finished if choosing specific consoles')
     helpers.print_console_list()
     while True:
-        userinput = sys.stdin.readline()
+        userinput: str = sys.stdin.readline()
         if (userinput == '\n' and len(config.Selections) == 0):
             config.All = True
             break
@@ -258,7 +258,7 @@ def get_extraction_status(config: models.Config):
     )
     print('Default is \'y\'')
     while True:
-        userinput = sys.stdin.readline()
+        userinput: str = sys.stdin.readline()
         if (userinput == '\n'):
             config.Extract = True
             break
@@ -277,7 +277,7 @@ def get_extraction_status(config: models.Config):
 
 def print_search_results(roms: List[models.ROM]):
     """Prints the returned search results from the users query"""
-    count = 0
+    count: int = 0
     print(
         '\nSelect which roms you would like to download and then enter \'d\'')
     for x in roms:
@@ -328,7 +328,7 @@ def download_search_results(downloads: List[int], roms: List[models.ROM],
 
 def extract_file(path: str, name: str):
     """Extracts the downloaded archives"""
-    fullpath = os.path.join(path, name)
+    fullpath: str = os.path.join(path, name)
     basefilename = re.findall(r'(.+?)(\.[^.]*$|$)', name)
     basefilename = str(basefilename[0][0])
     filetype = re.findall(r'((?:zip|7z))', fullpath)

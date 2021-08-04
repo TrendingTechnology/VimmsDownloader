@@ -9,14 +9,14 @@
 			"name": "Run & Lint",
 			"type": "python",
 			"request": "launch",
-			"program": "Script.py",
+			"program": "script.py",
 			"console": "integratedTerminal"
 		},
 		{
 			"name": "Run Program",
 			"type": "python",
 			"request": "launch",
-			"program": "Script.py",
+			"program": "script.py",
 			"console": "integratedTerminal"
 		}
 	]
