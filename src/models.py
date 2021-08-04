@@ -2,7 +2,12 @@ from typing import List
 
 
 class Config:
-    def __init__(self, Selections: List[str] = [], All: bool = False, Extract: bool = False, Search: bool = False, Bulk: bool = False):
+    def __init__(self,
+                 Selections: List[str] = [],
+                 All: bool = False,
+                 Extract: bool = False,
+                 Search: bool = False,
+                 Bulk: bool = False):
         self.Selections = Selections
         self.All = All
         self.Extract = Extract

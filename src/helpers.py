@@ -4,24 +4,60 @@ import sys
 from src import models
 
 selections: list[dict[int, str]] = [
-    {0: 'NES'},
-    {1: 'Genesis'},
-    {2: 'SNES'},
-    {3: 'Saturn'},
-    {4: 'Playstation'},
-    {5: 'N64'},
-    {6: 'Dreamcast'},
-    {7: 'Playstation-2'},
-    {8: 'Xbox'},
-    {9: 'Gamecube'},
-    {10: 'Playstation-3'},
-    {11: 'Wii'},
-    {12: 'WiiWare'},
-    {13: 'Game-Boy'},
-    {14: 'Game-Boy-Color'},
-    {15: 'Game-Boy-Advanced'},
-    {16: 'Nintendo-DS'},
-    {17: 'PSP'},
+    {
+        0: 'NES'
+    },
+    {
+        1: 'Genesis'
+    },
+    {
+        2: 'SNES'
+    },
+    {
+        3: 'Saturn'
+    },
+    {
+        4: 'Playstation'
+    },
+    {
+        5: 'N64'
+    },
+    {
+        6: 'Dreamcast'
+    },
+    {
+        7: 'Playstation-2'
+    },
+    {
+        8: 'Xbox'
+    },
+    {
+        9: 'Gamecube'
+    },
+    {
+        10: 'Playstation-3'
+    },
+    {
+        11: 'Wii'
+    },
+    {
+        12: 'WiiWare'
+    },
+    {
+        13: 'Game-Boy'
+    },
+    {
+        14: 'Game-Boy-Color'
+    },
+    {
+        15: 'Game-Boy-Advanced'
+    },
+    {
+        16: 'Nintendo-DS'
+    },
+    {
+        17: 'PSP'
+    },
 ]
 
 selectiontouri: dict[str, str] = {
@@ -47,8 +83,10 @@ selectiontouri: dict[str, str] = {
 
 
 def __CreateAlphaNumStructure(path: str, system: str):
-    dirnames: list[str] = ['#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-                           'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+    dirnames: list[str] = [
+        '#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+        'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+    ]
     try:
         for x in dirnames:
             os.mkdir(os.path.join(path, 'ROMS', system, x))
@@ -140,4 +178,5 @@ def SelectionToUri(selection: str):
 def PrintConsoleList():
     for x in range(0, 9):
         print(
-            f'{x:5d} ==> {selections[x][x]:15} | {x+9:5d} ==> {selections[x+9][x+9]:10}')
+            f'{x:5d} ==> {selections[x][x]:15} | {x+9:5d} ==> {selections[x+9][x+9]:10}'
+        )
