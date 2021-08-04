@@ -1,6 +1,7 @@
+from typing import List
 import os
 import sys
-from typing import List
+from src import models
 
 selections: list[dict[int, str]] = [
     {0: 'NES'},
@@ -23,14 +24,26 @@ selections: list[dict[int, str]] = [
     {17: 'PSP'},
 ]
 
-
-class __Config:
-    def __init__(self, Selections: List[str] = [], All: bool = False, Extract: bool = False, Search: bool = False, Bulk: bool = False):
-        self.Selections = Selections
-        self.All = All
-        self.Extract = Extract
-        self.Search = Search
-        self.Bulk = Bulk
+selectiontouri: dict[str, str] = {
+    'NES': 'NES',
+    'Genesis': 'Genesis',
+    'SNES': 'SNES',
+    'Saturn': 'Saturn',
+    'Playstation': 'PS1',
+    'N64': 'N64',
+    'Dreamcast': 'Dreamcast',
+    'Playstation-2': 'PS2',
+    'Xbox': 'Xbox',
+    'Gamecube': 'GameCube',
+    'Playstation-3': 'PS3',
+    'Wii': 'Wii',
+    'WiiWare': 'WiiWare',
+    'Game-Boy': 'GB',
+    'Game-Boy-Color': 'GBC',
+    'Game-Boy-Advanced': 'GBA',
+    'Nintendo-DS': 'DS',
+    'PSP': 'PSP',
+}
 
 
 def __CreateAlphaNumStructure(path: str, system: str):
@@ -107,8 +120,7 @@ def __CreateSelNoHome(path, userselections: List[str]):
             __CreateAlphaNumStructure(path, selections[int(x)][int(x)])
 
 
-def CreateDirectoryStructure(config: __Config):
-    path: str = os.getcwd()
+def CreateDirectoryStructure(config: models.Config, path: str):
     if config.All:
         if not __CheckIfHomeDirCreated(path):
             __CreateAllNoHome(path)
@@ -119,3 +131,13 @@ def CreateDirectoryStructure(config: __Config):
             __CreateSelNoHome(path, config.Selections)
         if __CheckIfHomeDirCreated(path):
             __CreateSelWHome(path, config.Selections)
+
+
+def SelectionToUri(selection: str):
+    return selectiontouri[selection]
+
+
+def PrintConsoleList():
+    for x in range(0, 9):
+        print(
+            f'{x:5d} ==> {selections[x][x]:15} | {x+9:5d} ==> {selections[x+9][x+9]:10}')

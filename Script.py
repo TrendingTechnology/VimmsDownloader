@@ -1,90 +1,17 @@
+"""The Vimms-DL Tool"""
+import zipfile
 from threading import Thread
-from typing import List
-from py7zr.archiveinfo import FilesInfo
 import re
+import sys
+import os
+from typing import List
+import py7zr
+from requests.models import Response
 from fake_useragent.fake import FakeUserAgent, UserAgent
 import requests
 from bs4 import BeautifulSoup
-import sys
-import os
-import filestructure
-import zipfile
-import py7zr
-from requests.models import Response
-selections: list[dict[int, str]] = [
-    {0: 'NES'},
-    {1: 'Genesis'},
-    {2: 'SNES'},
-    {3: 'Saturn'},
-    {4: 'Playstation'},
-    {5: 'N64'},
-    {6: 'Dreamcast'},
-    {7: 'Playstation-2'},
-    {8: 'Xbox'},
-    {9: 'Gamecube'},
-    {10: 'Playstation-3'},
-    {11: 'Wii'},
-    {12: 'WiiWare'},
-    {13: 'Game-Boy'},
-    {14: 'Game-Boy-Color'},
-    {15: 'Game-Boy-Advanced'},
-    {16: 'Nintendo-DS'},
-    {17: 'PSP'},
-]
-
-selectiontouri: dict[str, str] = {
-    'NES': 'NES',
-    'Genesis': 'Genesis',
-    'SNES': 'SNES',
-    'Saturn': 'Saturn',
-    'Playstation': 'PS1',
-    'N64': 'N64',
-    'Dreamcast': 'Dreamcast',
-    'Playstation-2': 'PS2',
-    'Xbox': 'Xbox',
-    'Gamecube': 'GameCube',
-    'Playstation-3': 'PS3',
-    'Wii': 'Wii',
-    'WiiWare': 'WiiWare',
-    'Game-Boy': 'GB',
-    'Game-Boy-Color': 'GBC',
-    'Game-Boy-Advanced': 'GBA',
-    'Nintendo-DS': 'DS',
-    'PSP': 'PSP',
-}
-
-
-class Config:
-    def __init__(self, Selections: List[str] = [], All: bool = False, Extract: bool = False, Search: bool = False, Bulk: bool = False):
-        self.Selections = Selections
-        self.All = All
-        self.Extract = Extract
-        self.Search = Search
-        self.Bulk = Bulk
-
-
-class ROM():
-    def __init__(self, Name: str, URI: str):
-        self.Name = Name
-        self.URI = URI
-
-
-class SectionofROMs:
-    def __init__(self, Section: str, ROMS: List[ROM]):
-        self.Section = Section
-        self.ROMS = ROMS
-
-
-class SearchSelection:
-    def __init__(self, System: str = '', Query: str = ''):
-        self.System = System
-        self.Query = Query
-
-
-class BulkSystemROMS:
-    def __init__(self, Sections: List[SectionofROMs], System: str):
-        self.System = System
-        self.Sections = Sections
+from src.helpers import models
+from src import helpers
 
 
 def GetROMDownloadURL(url: str):
@@ -110,7 +37,7 @@ def GetSubSectionLetterFromStr(subsection: str):
 
 
 def GetSectionofROMS(section: str):
-    roms: List[ROM] = []
+    roms: List[models.ROM] = []
     try:
         page = requests.get('https://vimm.net/vault/' + section)
         soup = BeautifulSoup(page.content, 'html.parser')
@@ -127,7 +54,7 @@ def GetSectionofROMS(section: str):
                     result = resultsoup.find('a', href=True)
                     name = result.contents[0]
                     result = result['href']
-                    rom = ROM(name, result)
+                    rom = models.ROM(name, result)
                     roms.append(rom)
                     odd = None
                 if(even is not None):
@@ -136,7 +63,7 @@ def GetSectionofROMS(section: str):
                     result = resultsoup.find('a', href=True)
                     name = result.contents[0]
                     result = result['href']
-                    rom = ROM(name, result)
+                    rom = models.ROM(name, result)
                     roms.append(rom)
                     even = None
         return roms
@@ -147,14 +74,16 @@ def GetSectionofROMS(section: str):
 
 
 def GetAllSystemROMS(system: str):
-    sectionroms: List[SectionofROMs] = []
+    sectionroms: List[models.SectionofROMs] = []
     sectionurls = [f'?p=list&system={system}&section=number', f'{system}/a', f'{system}/b', f'{system}/c', f'{system}/d', f'{system}/e', f'{system}/f', f'{system}/g', f'{system}/h', f'{system}/i', f'{system}/j', f'{system}/k', f'{system}/l',
                    f'{system}/m', f'{system}/n', f'{system}/o', f'{system}/p', f'{system}/q', f'{system}/r', f'{system}/s', f'{system}/t', f'{system}/u', f'{system}/v', f'{system}/w', f'{system}/x', f'{system}/y', f'{system}/z']
     for x in sectionurls:
-        roms: List[ROM] = GetSectionofROMS(x)
-        section: SectionofROMs = SectionofROMs(x, roms)
+        roms: List[models.ROM] = GetSectionofROMS(x)
+        section: models.SectionofROMs = models.SectionofROMs(
+            x, roms)
         sectionroms.append(section)
-    SystemROMS: BulkSystemROMS = BulkSystemROMS(sectionroms, system)
+    SystemROMS: models.BulkSystemROMS = models.BulkSystemROMS(
+        sectionroms, system)
     return SystemROMS
 
 
@@ -187,16 +116,14 @@ def DownloadFile(pageurl: str, downloadurl: str, path: str):
 
 
 def GetSearchSelection():
-    searchselection: SearchSelection = SearchSelection()
+    searchselection: models.SearchSelection = models.SearchSelection()
     print('\nPlease select what system you want to search')
-    for x in range(0, 9):
-        print(
-            f'{x:5d} ==> {selections[x][x]:15} | {x+9:5d} ==> {selections[x+9][x+9]:10}')
+    helpers.PrintConsoleList()
     while True:
         userinput = sys.stdin.readline()
         try:
             if(not(int(userinput) > 17 or int(userinput) < 0)):
-                searchselection.System = selections[int(
+                searchselection.System = helpers.selections[int(
                     userinput)][int(userinput)]
                 break
             else:
@@ -210,11 +137,11 @@ def GetSearchSelection():
     return searchselection
 
 
-def GetSearchSection(searchselection: SearchSelection):
-    roms: List[ROM] = []
+def GetSearchSection(searchselection: models.SearchSelection):
+    roms: List[models.ROM] = []
     try:
         page = requests.get(
-            f'https://vimm.net/vault/?p=list&system={selectiontouri[searchselection.System]}&q={searchselection.Query}')
+            f'https://vimm.net/vault/?p=list&system={helpers.SelectionToUri(searchselection.System)}&q={searchselection.Query}')
         soup = BeautifulSoup(page.content, 'html.parser')
         result = soup.find(
             'table', {'class': 'rounded centered cellpadding1 hovertable'})
@@ -229,7 +156,7 @@ def GetSearchSection(searchselection: SearchSelection):
                     result = resultsoup.find('a', href=True)
                     name = result.contents[0]
                     result = result['href']
-                    rom = ROM(name, result)
+                    rom = models.ROM(name, result)
                     roms.append(rom)
                     odd = None
                 if(even is not None):
@@ -238,7 +165,7 @@ def GetSearchSection(searchselection: SearchSelection):
                     result = resultsoup.find('a', href=True)
                     name = result.contents[0]
                     result = result['href']
-                    rom = ROM(name, result)
+                    rom = models.ROM(name, result)
                     roms.append(rom)
                     even = None
         return roms
@@ -262,7 +189,7 @@ def PrintWelcome():
 
 
 def GetProgramMode():
-    config: Config = Config()
+    config: models.Config = models.Config()
     print('\nWould you like to do bulk download or search for specific?')
     print('(B/S)')
     print('Default is \'B\'')
@@ -284,12 +211,10 @@ def GetProgramMode():
     return config
 
 
-def GetBulkSelections(config: Config):
+def GetBulkSelections(config: models.Config):
     print('Press Enter to download all of Vimm\'s roms or select from the following of what systems you would like')
     print('Enter \'q\' when finished if choosing specific consoles')
-    for x in range(0, 9):
-        print(
-            f'{x:5d} ==> {selections[x][x]:15} | {x+9:5d} ==> {selections[x+9][x+9]:10}')
+    helpers.PrintConsoleList()
     while True:
         userinput = sys.stdin.readline()
         if(userinput == '\n' and len(config.Selections) == 0):
@@ -309,7 +234,7 @@ def GetBulkSelections(config: Config):
     return config
 
 
-def GetExtractionStatus(config: Config):
+def GetExtractionStatus(config: models.Config):
     print('Would you like to automatically extract and delete archives after download? (Y/n)')
     print('Default is \'y\'')
     while True:
@@ -330,7 +255,7 @@ def GetExtractionStatus(config: Config):
     return config
 
 
-def PrintSearchResults(roms: List[ROM]):
+def PrintSearchResults(roms: List[models.ROM]):
     count = 0
     print('\nSelect which roms you would like to download and then enter \'d\'')
     for x in roms:
@@ -339,7 +264,7 @@ def PrintSearchResults(roms: List[ROM]):
         count += 1
 
 
-def GetSearchResultInput(roms: List[ROM]):
+def GetSearchResultInput(roms: List[models.ROM]):
     downloadselroms: List[int] = []
     print('\nSelect which roms you would like to download and then enter \'d\'')
     while True:
@@ -362,7 +287,7 @@ def GetSearchResultInput(roms: List[ROM]):
             continue
 
 
-def DownloadSearchResults(downloads: List[int], roms: List[ROM], config: Config):
+def DownloadSearchResults(downloads: List[int], roms: List[models.ROM], config: models.Config):
     threads = []
     for x in downloads:
         downloadname = DownloadFile(
@@ -423,10 +348,10 @@ def CreateDirectoryForROM(name: str, path: str):
     return newpath
 
 
-def RunSearchLoop(config: Config):
+def RunSearchLoop(config: models.Config):
     while True:
-        selection: SearchSelection = GetSearchSelection()
-        roms: List[ROM] = GetSearchSection(selection)
+        selection: models.SearchSelection = GetSearchSelection()
+        roms: List[models.ROM] = GetSearchSection(selection)
         PrintSearchResults(roms)
         restart: bool = CheckIfNeedToReSearch()
         if restart:
@@ -446,20 +371,20 @@ def ExtractandDeleteSearchResults(download: str):
     DeleteFile('.', download)
 
 
-def RunSelectedProgram(config: Config):
+def RunSelectedProgram(config: models.Config):
     if config.Bulk:
-        config: Config = GetBulkSelections(config)
+        config: models.Config = GetBulkSelections(config)
     if config.Search:
         RunSearchLoop(config)
     return config
 
 
-def main():
+def Main():
     PrintWelcome()
-    config: Config = GetProgramMode()
-    config: Config = GetExtractionStatus(config)
+    config: models.Config = GetProgramMode()
+    config: models.Config = GetExtractionStatus(config)
     RunSelectedProgram(config)
 
 
 if __name__ == '__main__':
-    main()
+    Main()
