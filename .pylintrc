@@ -80,7 +80,6 @@ disable=too-few-public-methods,
 	superfluous-parens,
 	inconsistent-return-statements,
 	no-else-return,
-	missing-function-docstring,
 	bare-except,
 	import-error,
 	print-statement,
@@ -457,7 +456,7 @@ indent-after-paren=4
 indent-string='    '
 
 # Maximum number of characters on a single line.
-max-line-length=200
+max-line-length=100
 
 # Maximum number of lines in a module.
 max-module-lines=1000

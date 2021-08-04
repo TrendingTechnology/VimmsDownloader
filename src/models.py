@@ -4,7 +4,6 @@ from typing import List
 
 class Config:
     """Config object created based on user input"""
-
     def __init__(self,
                  Selections: List[str] = [],
                  All: bool = False,
@@ -20,7 +19,6 @@ class Config:
 
 class ROM():
     """Used to hold a details about a single ROM"""
-
     def __init__(self, Name: str, URI: str):
         self.Name = Name
         self.URI = URI
@@ -31,7 +29,6 @@ class ROM():
 
 class SectionofROMs:
     """Used to hold a details about multiple ROMs"""
-
     def __init__(self, Section: str, ROMS: List[ROM]):
         self.Section = Section
         self.ROMS = ROMS
@@ -39,7 +36,6 @@ class SectionofROMs:
 
 class SearchSelection:
     """Used when in search mode to get the parameters for the search criteria"""
-
     def __init__(self, System: str = '', Query: str = ''):
         self.System = System
         self.Query = Query
@@ -47,7 +43,6 @@ class SearchSelection:
 
 class BulkSystemROMS:
     """Used hold all of a systems ROMS"""
-
     def __init__(self, Sections: List[SectionofROMs], System: str):
         self.System = System
         self.Sections = Sections

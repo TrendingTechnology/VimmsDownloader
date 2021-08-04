@@ -15,6 +15,7 @@ from src import helpers
 
 
 def get_rom_download_url(url: str):
+    """Gets the Download ID for the a specific ROM from the ROMs page url"""
     try:
         page = requests.get('https://vimm.net/' + url)
         soup = BeautifulSoup(page.content, 'html.parser')
@@ -29,6 +30,8 @@ def get_rom_download_url(url: str):
 
 
 def get_sub_section_letter_from_str(subsection: str):
+    """Returns the subsection letter to get the downloaded ROM to the\
+            correct alphanumeric directory"""
     number = '&section=number'
     if number in subsection.lower():
         return 'number'
@@ -37,6 +40,7 @@ def get_sub_section_letter_from_str(subsection: str):
 
 
 def get_section_of_roms(section: str):
+    """Gets a section of ROM home page URIs from a system category"""
     roms: List[models.ROM] = []
     try:
         page = requests.get('https://vimm.net/vault/' + section)
@@ -74,6 +78,7 @@ def get_section_of_roms(section: str):
 
 
 def get_all_system_roms(system: str):
+    """Used in bulk mode to get the home page URI for every rom on a system"""
     sectionroms: List[models.SectionofROMs] = []
     sectionurls = [
         f'?p=list&system={system}&section=number', f'{system}/a',
@@ -95,16 +100,23 @@ def get_all_system_roms(system: str):
 
 
 def download_file(pageurl: str, downloadurl: str, path: str):
+    """Downloads one rom from the uri, downloadid\
+            downloads to the path director"""
     x = 0
     while True:
         agent: FakeUserAgent = UserAgent()
         headers: dict[str, str] = {
             'Accept':
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Connection': 'keep-alive',
-            'User-Agent': agent.random,
-            'Referer': f'https://vimm.net/vault{pageurl}'
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image' +
+            '/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+            'Accept-Encoding':
+            'gzip, deflate, br',
+            'Connection':
+            'keep-alive',
+            'User-Agent':
+            agent.random,
+            'Referer':
+            f'https://vimm.net/vault{pageurl}'
         }
         file: Response = requests.get(
             f'https://download2.vimm.net/download/?mediaId={downloadurl}',
@@ -126,6 +138,7 @@ def download_file(pageurl: str, downloadurl: str, path: str):
 
 
 def get_search_selection():
+    """Gets search criteria for search mode"""
     searchselection: models.SearchSelection = models.SearchSelection()
     print('\nPlease select what system you want to search')
     helpers.print_console_list()
@@ -148,11 +161,13 @@ def get_search_selection():
 
 
 def get_search_section(searchselection: models.SearchSelection):
+    """Gets a section of roms from the search selection"""
     roms: List[models.ROM] = []
     try:
         page = requests.get(
-            f'https://vimm.net/vault/?p=list&system={helpers.selection_to_uri(searchselection.System)}&q={searchselection.Query}'
-        )
+            'https://vimm.net/vault/?p=list&system=' +
+            f'{helpers.selection_to_uri(searchselection.System)}' +
+            f'&q={searchselection.Query}')
         soup = BeautifulSoup(page.content, 'html.parser')
         result = soup.find(
             'table', {'class': 'rounded centered cellpadding1 hovertable'})
@@ -186,22 +201,8 @@ def get_search_section(searchselection: models.SearchSelection):
         print(e)
 
 
-def print_welcome():
-    print(r"""
-     _   _ _                          _           _     ______                    _                 _
-    | | | (_)                        | |         (_)    |  _  \                  | |               | |
-    | | | |_ _ __ ___  _ __ ___  ___ | |     __ _ _ _ __| | | |_____      ___ __ | | ___   __ _  __| | ___ _ __
-    | | | | | '_ ` _ \| '_ ` _ \/ __|| |    / _` | | '__| | | / _ \ \ /\ / / '_ \| |/ _ \ / _` |/ _` |/ _ \ '__|
-    \ \_/ / | | | | | | | | | | \__ \| |___| (_| | | |  | |/ / (_) \ V  V /| | | | | (_) | (_| | (_| |  __/ |
-    \___/|_|_| |_| |_|_| |_| |_|___/\_____/\__,_|_|_|  |___/ \___/ \_/\_/ |_| |_|_|\___/ \__,_|\__,_|\___|_|
-        """)
-    print('Welcome to the Vimm\'s Lair Download Script')
-    print(
-        'Please use responsibily, I am not liable for any damages, or legal issues caused by using this script'
-    )
-
-
 def get_program_mode():
+    """Gets input from user to go into either (Bulk/Search) mode"""
     config: models.Config = models.Config()
     print('\nWould you like to do bulk download or search for specific?')
     print('(B/S)')
@@ -225,9 +226,9 @@ def get_program_mode():
 
 
 def get_bulk_selections(config: models.Config):
-    print(
-        'Press Enter to download all of Vimm\'s roms or select from the following of what systems you would like'
-    )
+    """Gets input in bulk mode if the user wants to only download specific consoles"""
+    print('Press Enter to download all of Vimm\'s roms or select from the\
+		 following of what systems you would like')
     print('Enter \'q\' when finished if choosing specific consoles')
     helpers.print_console_list()
     while True:
@@ -250,6 +251,8 @@ def get_bulk_selections(config: models.Config):
 
 
 def get_extraction_status(config: models.Config):
+    """Used in Bulk and Search mode to check if user wants to \
+            extract and delete downloaded ROM archives"""
     print(
         'Would you like to automatically extract and delete archives after download? (Y/n)'
     )
@@ -273,6 +276,7 @@ def get_extraction_status(config: models.Config):
 
 
 def print_search_results(roms: List[models.ROM]):
+    """Prints the returned search results from the users query"""
     count = 0
     print(
         '\nSelect which roms you would like to download and then enter \'d\'')
@@ -282,6 +286,7 @@ def print_search_results(roms: List[models.ROM]):
 
 
 def get_search_result_input(roms: List[models.ROM]):
+    """Used to get input in search mode for what ROMs the user wants to download"""
     downloadselroms: List[int] = []
     print(
         '\nSelect which roms you would like to download and then enter \'d\'')
@@ -307,6 +312,7 @@ def get_search_result_input(roms: List[models.ROM]):
 
 def download_search_results(downloads: List[int], roms: List[models.ROM],
                             config: models.Config):
+    """Downloads the users specified roms in search mode"""
     threads = []
     for x in downloads:
         downloadname = download_file(roms[x].URI,
@@ -321,6 +327,7 @@ def download_search_results(downloads: List[int], roms: List[models.ROM],
 
 
 def extract_file(path: str, name: str):
+    """Extracts the downloaded archives"""
     fullpath = os.path.join(path, name)
     basefilename = re.findall(r'(.+?)(\.[^.]*$|$)', name)
     basefilename = str(basefilename[0][0])
@@ -339,10 +346,12 @@ def extract_file(path: str, name: str):
 
 
 def delete_file(path: str, name: str):
+    """Deletes the archives"""
     os.remove(os.path.join(path, name))
 
 
 def check_if_need_to_re_search():
+    """Gets user input to research if query didn't return wanted results"""
     search: bool = False
     print('\nDo you want to search again?(y/N)')
     while True:
@@ -362,12 +371,15 @@ def check_if_need_to_re_search():
 
 
 def create_directory_for_rom(name: str, path: str):
+    """Used to create the directory for the ROMs archived files to\
+            be extracted to"""
     newpath: str = os.path.join(path, name)
     os.mkdir(newpath)
     return newpath
 
 
 def run_search_loop(config: models.Config):
+    """Main loop for the search program"""
     while True:
         selection: models.SearchSelection = get_search_selection()
         roms: List[models.ROM] = get_search_section(selection)
@@ -386,11 +398,13 @@ def run_search_loop(config: models.Config):
 
 
 def extract_and_delete_search_results(download: str):
+    """Used to extract and delete the archives in search mode"""
     extract_file('.', download)
     delete_file('.', download)
 
 
 def run_selected_program(config: models.Config):
+    """Runs selected program"""
     if config.Bulk:
         config: models.Config = get_bulk_selections(config)
     if config.Search:
@@ -399,7 +413,8 @@ def run_selected_program(config: models.Config):
 
 
 def main():
-    print_welcome()
+    """Programs main method"""
+    helpers.print_welcome()
     config: models.Config = get_program_mode()
     config: models.Config = get_extraction_status(config)
     run_selected_program(config)

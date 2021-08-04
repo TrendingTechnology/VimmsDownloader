@@ -84,6 +84,8 @@ __to_uri: dict[str, str] = {
 
 
 def __create_alpha_num_structure(path: str, system: str):
+    """Used in bulk mode to create the Alphanumeric directory\
+             structure in a system's directory"""
     dirnames: list[str] = [
         '#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
         'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
@@ -98,6 +100,7 @@ def __create_alpha_num_structure(path: str, system: str):
 
 
 def __create_rom_home_dir(path: str):
+    """Creates the main 'ROMS' directory in the root of the project"""
     try:
         os.mkdir(os.path.join(path, 'ROMS'))
     except:
@@ -107,6 +110,7 @@ def __create_rom_home_dir(path: str):
 
 
 def __create_rom_system_dir(path: str, system: str):
+    """Creates a specific system's directory inside the 'ROMS' folder"""
     try:
         os.mkdir(os.path.join(path, 'ROMS', system))
     except:
@@ -116,18 +120,21 @@ def __create_rom_system_dir(path: str, system: str):
 
 
 def __check_if_home_dir_created(path: str):
+    """Checks for the existance of the 'ROMS' directory"""
     for x in os.listdir(path):
         if x == 'ROMS':
             return True
 
 
 def __check_if_system_dir_created(path: str, system: str):
+    """Checks for the existance of a specific system directory in the 'ROMS' directory"""
     for x in os.listdir(os.path.join(path, 'ROMS')):
         if x == system:
             return True
 
 
 def __create_all_no_home(path):
+    """Used in bulk mode to create all the directories and sub-directories"""
     __create_rom_home_dir(path)
     for x in selections:
         for value in x:
@@ -137,6 +144,8 @@ def __create_all_no_home(path):
 
 
 def __create_all_w_home(path):
+    """Used in bulk mode to create all the directories and sub-directories \
+            except 'ROMS' Directory"""
     for x in selections:
         for value in x:
             if not __check_if_system_dir_created(path, x[value]):
@@ -145,6 +154,7 @@ def __create_all_w_home(path):
 
 
 def __create_sel_w_home(path, userselections: List[str]):
+    """Used in bulk mode when the user only wants selected systems"""
     for x in userselections:
         if not __check_if_system_dir_created(path, selections[int(x)][int(x)]):
             __create_rom_system_dir(path, selections[int(x)][int(x)])
@@ -152,6 +162,7 @@ def __create_sel_w_home(path, userselections: List[str]):
 
 
 def __create_sel_no_home(path, userselections: List[str]):
+    """Used in bulk mode when the user only wants selected systems"""
     __create_rom_home_dir(path)
     for x in userselections:
         if not __check_if_system_dir_created(path, selections[int(x)][int(x)]):
@@ -160,6 +171,7 @@ def __create_sel_no_home(path, userselections: List[str]):
 
 
 def create_directory_structure(config: models.Config, path: str):
+    """Public helper to be used in bulk mode"""
     if config.All:
         if not __check_if_home_dir_created(path):
             __create_all_no_home(path)
@@ -173,11 +185,29 @@ def create_directory_structure(config: models.Config, path: str):
 
 
 def selection_to_uri(selection: str):
+    """Public helper to return the correct uri from the prettier printed version"""
     return __to_uri[selection]
 
 
 def print_console_list():
+    """Public helper to print the consoles listed on Vimms"""
     for x in range(0, 9):
         print(
             f'{x:5d} ==> {selections[x][x]:15} | {x+9:5d} ==> {selections[x+9][x+9]:10}'
         )
+
+
+def print_welcome():
+    """Prints the welcome message..\
+             hmm yes the floor is made of floor"""
+    print(r"""
+     _   _ _                          _           _     ______                    _                 _
+    | | | (_)                        | |         (_)    |  _  \                  | |               | |
+    | | | |_ _ __ ___  _ __ ___  ___ | |     __ _ _ _ __| | | |_____      ___ __ | | ___   __ _  __| | ___ _ __
+    | | | | | '_ ` _ \| '_ ` _ \/ __|| |    / _` | | '__| | | / _ \ \ /\ / / '_ \| |/ _ \ / _` |/ _` |/ _ \ '__|
+    \ \_/ / | | | | | | | | | | \__ \| |___| (_| | | |  | |/ / (_) \ V  V /| | | | | (_) | (_| | (_| |  __/ |
+    \___/|_|_| |_| |_|_| |_| |_|___/\_____/\__,_|_|_|  |___/ \___/ \_/\_/ |_| |_|_|\___/ \__,_|\__,_|\___|_|
+        """)
+    print('Welcome to the Vimm\'s Lair Download Script')
+    print('Please use responsibily, I am not liable for any damages, \
+		or legal issues caused by using this script')
