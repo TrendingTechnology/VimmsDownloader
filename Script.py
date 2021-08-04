@@ -400,7 +400,7 @@ def DeleteFile(path: str, name: str):
 
 def CheckIfNeedToReSearch():
     search: bool = False
-    print('Do you want to search again?(y/N)')
+    print('\nDo you want to search again?(y/N)')
     while True:
         userinput = sys.stdin.readline()
         if(userinput == '\n'):
