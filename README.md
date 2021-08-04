@@ -10,7 +10,7 @@ Vimms-DL is a tool for downloading ROMs from the site Vimm's Lair
 git clone https://github.com/BrianTipton1/VimmsDownloader.git
 cd VimmsDownloader
 pip3 install -r requirements.txt
-python3 Script.py
+python3 script.py
 ```
 
 ## Features

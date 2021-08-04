@@ -334,9 +334,9 @@ def extract_file(path: str, name: str):
     filetype = re.findall(r'((?:zip|7z))', fullpath)
     try:
         if str(filetype[0]).lower() == 'zip':
-            with (zipfile.ZipFile(fullpath, 'r')) as zip:
+            with (zipfile.ZipFile(fullpath, 'r')) as z:
                 dirpath: str = create_directory_for_rom(basefilename, path)
-                zip.extractall(os.path.join(dirpath))
+                z.extractall(os.path.join(dirpath))
         if str(filetype[0]).lower() == '7z':
             with py7zr.SevenZipFile(fullpath, mode='r') as z:
                 dirpath: str = create_directory_for_rom(basefilename, path)
