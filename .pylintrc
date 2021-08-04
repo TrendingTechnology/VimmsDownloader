@@ -76,7 +76,8 @@ confidence=
 # --disable=W".
 
 
-disable=superfluous-parens,
+disable=too-few-public-methods,
+	superfluous-parens,
 	inconsistent-return-statements,
 	no-else-return,
 	missing-function-docstring,
