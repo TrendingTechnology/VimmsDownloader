@@ -1,3 +1,4 @@
+"""Data models for Vimms-DL"""
 from typing import List
 
 

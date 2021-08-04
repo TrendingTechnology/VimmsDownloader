@@ -14,7 +14,7 @@ from src.helpers import models
 from src import helpers
 
 
-def GetROMDownloadURL(url: str):
+def get_rom_download_url(url: str):
     try:
         page = requests.get('https://vimm.net/' + url)
         soup = BeautifulSoup(page.content, 'html.parser')
@@ -28,7 +28,7 @@ def GetROMDownloadURL(url: str):
         print(e)
 
 
-def GetSubSectionLetterFromStr(subsection: str):
+def get_sub_section_letter_from_str(subsection: str):
     number = '&section=number'
     if number in subsection.lower():
         return 'number'
@@ -36,7 +36,7 @@ def GetSubSectionLetterFromStr(subsection: str):
         return subsection[-1]
 
 
-def GetSectionofROMS(section: str):
+def get_section_of_roms(section: str):
     roms: List[models.ROM] = []
     try:
         page = requests.get('https://vimm.net/vault/' + section)
@@ -73,7 +73,7 @@ def GetSectionofROMS(section: str):
         print(e)
 
 
-def GetAllSystemROMS(system: str):
+def get_all_system_roms(system: str):
     sectionroms: List[models.SectionofROMs] = []
     sectionurls = [
         f'?p=list&system={system}&section=number', f'{system}/a',
@@ -86,7 +86,7 @@ def GetAllSystemROMS(system: str):
         f'{system}/z'
     ]
     for x in sectionurls:
-        roms: List[models.ROM] = GetSectionofROMS(x)
+        roms: List[models.ROM] = get_section_of_roms(x)
         section: models.SectionofROMs = models.SectionofROMs(x, roms)
         sectionroms.append(section)
     SystemROMS: models.BulkSystemROMS = models.BulkSystemROMS(
@@ -94,7 +94,7 @@ def GetAllSystemROMS(system: str):
     return SystemROMS
 
 
-def DownloadFile(pageurl: str, downloadurl: str, path: str):
+def download_file(pageurl: str, downloadurl: str, path: str):
     x = 0
     while True:
         agent: FakeUserAgent = UserAgent()
@@ -125,10 +125,10 @@ def DownloadFile(pageurl: str, downloadurl: str, path: str):
             continue
 
 
-def GetSearchSelection():
+def get_search_selection():
     searchselection: models.SearchSelection = models.SearchSelection()
     print('\nPlease select what system you want to search')
-    helpers.PrintConsoleList()
+    helpers.print_console_list()
     while True:
         userinput = sys.stdin.readline()
         try:
@@ -147,11 +147,11 @@ def GetSearchSelection():
     return searchselection
 
 
-def GetSearchSection(searchselection: models.SearchSelection):
+def get_search_section(searchselection: models.SearchSelection):
     roms: List[models.ROM] = []
     try:
         page = requests.get(
-            f'https://vimm.net/vault/?p=list&system={helpers.SelectionToUri(searchselection.System)}&q={searchselection.Query}'
+            f'https://vimm.net/vault/?p=list&system={helpers.selection_to_uri(searchselection.System)}&q={searchselection.Query}'
         )
         soup = BeautifulSoup(page.content, 'html.parser')
         result = soup.find(
@@ -186,7 +186,7 @@ def GetSearchSection(searchselection: models.SearchSelection):
         print(e)
 
 
-def PrintWelcome():
+def print_welcome():
     print(r"""
      _   _ _                          _           _     ______                    _                 _
     | | | (_)                        | |         (_)    |  _  \                  | |               | |
@@ -201,7 +201,7 @@ def PrintWelcome():
     )
 
 
-def GetProgramMode():
+def get_program_mode():
     config: models.Config = models.Config()
     print('\nWould you like to do bulk download or search for specific?')
     print('(B/S)')
@@ -224,12 +224,12 @@ def GetProgramMode():
     return config
 
 
-def GetBulkSelections(config: models.Config):
+def get_bulk_selections(config: models.Config):
     print(
         'Press Enter to download all of Vimm\'s roms or select from the following of what systems you would like'
     )
     print('Enter \'q\' when finished if choosing specific consoles')
-    helpers.PrintConsoleList()
+    helpers.print_console_list()
     while True:
         userinput = sys.stdin.readline()
         if (userinput == '\n' and len(config.Selections) == 0):
@@ -249,7 +249,7 @@ def GetBulkSelections(config: models.Config):
     return config
 
 
-def GetExtractionStatus(config: models.Config):
+def get_extraction_status(config: models.Config):
     print(
         'Would you like to automatically extract and delete archives after download? (Y/n)'
     )
@@ -265,14 +265,14 @@ def GetExtractionStatus(config: models.Config):
         if (userinput.lower() == 'n\n'):
             config.Extract = False
             break
-        if ((userinput.lower() != 'n\n') and userinput.lower() != 'y\n'):
+        if ((userinput.lower() != 'n\n') and (userinput.lower() != 'y\n')):
             print('Not a selection')
             print('Please Select Y/n')
             continue
     return config
 
 
-def PrintSearchResults(roms: List[models.ROM]):
+def print_search_results(roms: List[models.ROM]):
     count = 0
     print(
         '\nSelect which roms you would like to download and then enter \'d\'')
@@ -281,7 +281,7 @@ def PrintSearchResults(roms: List[models.ROM]):
         count += 1
 
 
-def GetSearchResultInput(roms: List[models.ROM]):
+def get_search_result_input(roms: List[models.ROM]):
     downloadselroms: List[int] = []
     print(
         '\nSelect which roms you would like to download and then enter \'d\'')
@@ -305,14 +305,14 @@ def GetSearchResultInput(roms: List[models.ROM]):
             continue
 
 
-def DownloadSearchResults(downloads: List[int], roms: List[models.ROM],
-                          config: models.Config):
+def download_search_results(downloads: List[int], roms: List[models.ROM],
+                            config: models.Config):
     threads = []
     for x in downloads:
-        downloadname = DownloadFile(roms[x].URI,
-                                    GetROMDownloadURL(roms[x].URI), '.')
+        downloadname = download_file(roms[x].URI,
+                                     get_rom_download_url(roms[x].URI), '.')
         if config.Extract:
-            t = Thread(target=ExtractandDeleteSearchResults,
+            t = Thread(target=extract_and_delete_search_results,
                        args=(downloadname, ))
             t.start()
             threads.append(t)
@@ -320,7 +320,7 @@ def DownloadSearchResults(downloads: List[int], roms: List[models.ROM],
         t.join()
 
 
-def ExtractFile(path: str, name: str):
+def extract_file(path: str, name: str):
     fullpath = os.path.join(path, name)
     basefilename = re.findall(r'(.+?)(\.[^.]*$|$)', name)
     basefilename = str(basefilename[0][0])
@@ -328,21 +328,21 @@ def ExtractFile(path: str, name: str):
     try:
         if str(filetype[0]).lower() == 'zip':
             with (zipfile.ZipFile(fullpath, 'r')) as zip:
-                dirpath: str = CreateDirectoryForROM(basefilename, path)
+                dirpath: str = create_directory_for_rom(basefilename, path)
                 zip.extractall(os.path.join(dirpath))
         if str(filetype[0]).lower() == '7z':
             with py7zr.SevenZipFile(fullpath, mode='r') as z:
-                dirpath: str = CreateDirectoryForROM(basefilename, path)
+                dirpath: str = create_directory_for_rom(basefilename, path)
                 z.extractall(dirpath)
     except:
         pass
 
 
-def DeleteFile(path: str, name: str):
+def delete_file(path: str, name: str):
     os.remove(os.path.join(path, name))
 
 
-def CheckIfNeedToReSearch():
+def check_if_need_to_re_search():
     search: bool = False
     print('\nDo you want to search again?(y/N)')
     while True:
@@ -361,49 +361,49 @@ def CheckIfNeedToReSearch():
     return search
 
 
-def CreateDirectoryForROM(name: str, path: str):
+def create_directory_for_rom(name: str, path: str):
     newpath: str = os.path.join(path, name)
     os.mkdir(newpath)
     return newpath
 
 
-def RunSearchLoop(config: models.Config):
+def run_search_loop(config: models.Config):
     while True:
-        selection: models.SearchSelection = GetSearchSelection()
-        roms: List[models.ROM] = GetSearchSection(selection)
-        PrintSearchResults(roms)
-        restart: bool = CheckIfNeedToReSearch()
+        selection: models.SearchSelection = get_search_selection()
+        roms: List[models.ROM] = get_search_section(selection)
+        print_search_results(roms)
+        restart: bool = check_if_need_to_re_search()
         if restart:
             continue
-        downloads: List[int] = GetSearchResultInput(roms)
-        DownloadSearchResults(downloads, roms, config)
+        downloads: List[int] = get_search_result_input(roms)
+        download_search_results(downloads, roms, config)
         print('Done!')
-        restart: bool = CheckIfNeedToReSearch()
+        restart: bool = check_if_need_to_re_search()
         if restart:
             continue
         else:
             exit()
 
 
-def ExtractandDeleteSearchResults(download: str):
-    ExtractFile('.', download)
-    DeleteFile('.', download)
+def extract_and_delete_search_results(download: str):
+    extract_file('.', download)
+    delete_file('.', download)
 
 
-def RunSelectedProgram(config: models.Config):
+def run_selected_program(config: models.Config):
     if config.Bulk:
-        config: models.Config = GetBulkSelections(config)
+        config: models.Config = get_bulk_selections(config)
     if config.Search:
-        RunSearchLoop(config)
+        run_search_loop(config)
     return config
 
 
-def Main():
-    PrintWelcome()
-    config: models.Config = GetProgramMode()
-    config: models.Config = GetExtractionStatus(config)
-    RunSelectedProgram(config)
+def main():
+    print_welcome()
+    config: models.Config = get_program_mode()
+    config: models.Config = get_extraction_status(config)
+    run_selected_program(config)
 
 
 if __name__ == '__main__':
-    Main()
+    main()
