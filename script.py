@@ -205,8 +205,8 @@ def get_program_mode():
     """Gets input from user to go into either (Bulk/Search) mode"""
     config: models.Config = models.Config()
     print('\nWould you like to do bulk download or search for specific?')
-    print('(B/S)')
-    print('Default is \'B\'')
+    print('(B/s)')
+    print('Default is \'b\'')
     while True:
         userinput: str = sys.stdin.readline()
         if (userinput == '\n'):
