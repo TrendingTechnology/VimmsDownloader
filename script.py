@@ -55,7 +55,7 @@ def get_section_of_roms(section: str) -> List[models.ROM]:
                 even = new_soup.find(attrs={'class': 'even'})
                 if odd is not None:
                     result_soup = BeautifulSoup(str(odd.contents[0]),
-                                               'html.parser')
+                                                'html.parser')
                     result = result_soup.find('a', href=True)
                     name = result.contents[0]
                     result = result['href']
@@ -64,7 +64,7 @@ def get_section_of_roms(section: str) -> List[models.ROM]:
                     odd = None
                 if even is not None:
                     result_soup = BeautifulSoup(str(even.contents[0]),
-                                               'html.parser')
+                                                'html.parser')
                     result = result_soup.find('a', href=True)
                     name = result.contents[0]
                     result = result['href']
@@ -108,16 +108,16 @@ def download_file(page_url: str, download_url: str, path: str) -> str:
     while True:
         headers: dict[str, str] = {
             'Accept':
-                'text/html,application/xhtml+xml,application/xml;q=0.9,image' +
-                '/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image' +
+            '/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
             'Accept-Encoding':
-                'gzip, deflate, br',
+            'gzip, deflate, br',
             'Connection':
-                'keep-alive',
+            'keep-alive',
             'User-Agent':
-                helpers.get_random_ua(),
+            helpers.get_random_ua(),
             'Referer':
-                f'https://vimm.net/vault{page_url}'
+            f'https://vimm.net/vault{page_url}'
         }
         file: Response = requests.get(
             f'https://download2.vimm.net/download/?mediaId={download_url}',
@@ -129,6 +129,7 @@ def download_file(page_url: str, download_url: str, path: str) -> str:
             filename = filenames[0]
             full_path = os.path.join(path, filename)
             open(full_path, 'wb').write(file.content)
+            break
         if x == 4:
             print(f'5 Requests made to {download_url} and failed')
             break
@@ -168,7 +169,7 @@ def get_search_selection(config: models.Config) -> models.Config:
 
 
 def get_system_search_section(
-    search_selection: models.SearchSelection) -> List[models.ROM]:
+        search_selection: models.SearchSelection) -> List[models.ROM]:
     """Gets a section of roms using system search from the search selection"""
     roms: List[models.ROM] = []
     try:
@@ -178,8 +179,7 @@ def get_system_search_section(
             'table', {'class': 'rounded centered cellpadding1 hovertable'})
         for j in result.contents:
             if j != '\n':
-                new_soup: BeautifulSoup = BeautifulSoup(
-                    str(j), 'html.parser')
+                new_soup: BeautifulSoup = BeautifulSoup(str(j), 'html.parser')
                 odd = new_soup.find(attrs={'class': 'odd'})
                 even = new_soup.find(attrs={'class': 'even'})
                 if odd is not None:
@@ -193,7 +193,7 @@ def get_system_search_section(
                     odd = None
                 if even is not None:
                     result_soup = BeautifulSoup(str(even.contents[0]),
-                                               'html.parser')
+                                                'html.parser')
                     result = result_soup.find('a', href=True)
                     name = result.contents[0]
                     result = result['href']
@@ -206,7 +206,9 @@ def get_system_search_section(
         print(e)
     return roms
 
-def get_general_search_section(search_selection:models.SearchSelection)-> List[models.ROM]:
+
+def get_general_search_section(
+        search_selection: models.SearchSelection) -> List[models.ROM]:
     """Gets a section of roms when using general search from the search selection"""
     roms: List[models.ROM] = []
     try:
@@ -216,8 +218,7 @@ def get_general_search_section(search_selection:models.SearchSelection)-> List[m
             'table', {'class': 'rounded centered cellpadding1 hovertable'})
         for j in result.contents:
             if j != '\n':
-                new_soup: BeautifulSoup = BeautifulSoup(
-                    str(j), 'html.parser')
+                new_soup: BeautifulSoup = BeautifulSoup(str(j), 'html.parser')
                 odd = new_soup.find(attrs={'class': 'odd'})
                 even = new_soup.find(attrs={'class': 'even'})
                 if odd is not None:
@@ -327,21 +328,21 @@ def get_extraction_status(config: models.Config) -> models.Config:
     return config
 
 
-def print_general_search(roms:List[models.ROM]):
+def print_general_search(roms: List[models.ROM]):
     table = PrettyTable()
     table.field_names = ["Selection Number", "System", "ROM"]
     count = 0
     print(
         "\nSelect which roms you would like to download and then enter 'd'\n")
     for x in roms:
-        table.add_row([count,x.Console,x.Name])
+        table.add_row([count, x.Console, x.Name])
         count += 1
     table.align = "l"
     table.right_padding_width = 0
     print(table)
 
 
-def print_system_search(roms:List[models.ROM]):
+def print_system_search(roms: List[models.ROM]):
     """Prints the results from a system search"""
     table = PrettyTable()
     table.field_names = ["Selection Number", "ROM"]
@@ -349,7 +350,7 @@ def print_system_search(roms:List[models.ROM]):
     print(
         '\nSelect which roms you would like to download and then enter \'d\'')
     for x in roms:
-        table.add_row([count,x.Name])
+        table.add_row([count, x.Name])
         count += 1
     table.align = "l"
     table.right_padding_width = 0
@@ -396,10 +397,10 @@ def download_search_results(downloads: List[int], roms: List[models.ROM],
     threads: List[Thread] = []
     for x in downloads:
         download_name = download_file(roms[x].URI,
-                                     get_rom_download_url(roms[x].URI), '.')
+                                      get_rom_download_url(roms[x].URI), '.')
         if config.Extract:
             t = Thread(target=extract_and_delete_search_results,
-                       args=(download_name,))
+                       args=(download_name, ))
             t.start()
             threads.append(t)
     for t in threads:
@@ -410,19 +411,16 @@ def extract_file(path: str, name: str) -> None:
     """Extracts the downloaded archives"""
     full_path: str = os.path.join(path, name)
     base_filename: List[str] = re.findall(r'(.+?)(\.[^.]*$|$)', name)
-    filename: str = str(base_filename[0][0])
-    filetype = re.findall(r'(zip|7z)', full_path)
-    try:
-        if str(filetype[0]).lower() == 'zip':
-            with (zipfile.ZipFile(full_path, 'r')) as z:
-                dirpath = create_directory_for_rom(filename, path)
-                z.extractall(os.path.join(dirpath))
-        if str(filetype[0]).lower() == '7z':
-            with py7zr.SevenZipFile(full_path, mode='r') as z:
-                dirpath = create_directory_for_rom(filename, path)
-                z.extractall(dirpath)
-    except:
-        pass
+    file_name: str = str(base_filename[0][0])
+    file_type = re.findall(r'(zip|7z)', full_path)
+    if str(file_type[0]).lower() == 'zip':
+        with (zipfile.ZipFile(full_path, 'r')) as z:
+            dir_path = create_directory_for_rom(file_name, path)
+            z.extractall(os.path.join(dir_path))
+    if str(file_type[0]).lower() == '7z':
+        with py7zr.SevenZipFile(full_path, mode='r') as z:
+            dir_path = create_directory_for_rom(file_name, path)
+            z.extractall(dir_path)
 
 
 def delete_file(path: str, name: str) -> None:
@@ -453,9 +451,11 @@ def check_if_need_to_re_search() -> bool:
 def run_search(config: models.Config) -> List[models.ROM]:
     """Runs the correct search method to get a list of the search results"""
     if helpers.is_general_search(config.Query.SearchSelections):
-        roms:List[models.ROM] = get_general_search_section(config.Query.SearchSelections)
+        roms: List[models.ROM] = get_general_search_section(
+            config.Query.SearchSelections)
         return roms
-    roms: List[models.ROM] = get_system_search_section(config.Query.SearchSelections)
+    roms: List[models.ROM] = get_system_search_section(
+        config.Query.SearchSelections)
     return roms
 
 
