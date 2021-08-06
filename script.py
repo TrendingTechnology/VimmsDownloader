@@ -261,14 +261,14 @@ def get_program_mode() -> models.Config:
     print('(B/s)')
     print('Default is \'b\'')
     while True:
-        userinput: str = sys.stdin.readline()
-        if userinput == '\n':
+        user_input: str = sys.stdin.readline()
+        if user_input == '\n':
             config.BulkMode = True
             break
-        if userinput.lower() == 'b\n':
+        if user_input.lower() == 'b\n':
             config.BulkMode = True
             break
-        if userinput.lower() == 's\n':
+        if user_input.lower() == 's\n':
             config.SearchMode = True
             break
         else:
@@ -371,17 +371,17 @@ def get_search_result_input(roms: List[models.ROM]) -> List[int]:
     print(
         '\nSelect which roms you would like to download and then enter \'d\'')
     while True:
-        userinput = sys.stdin.readline()
-        if userinput == '\n':
+        user_input = sys.stdin.readline()
+        if user_input == '\n':
             print('Please select a rom or press \'q\' to quit program')
             continue
-        if userinput == 'q\n':
+        if user_input == 'q\n':
             exit()
-        if userinput == 'd\n':
+        if user_input == 'd\n':
             break
         try:
-            if not (int(userinput) > len(roms) - 1 or int(userinput) < 0):
-                download_sel_roms.append(int(userinput))
+            if not (int(user_input) > len(roms) - 1 or int(user_input) < 0):
+                download_sel_roms.append(int(user_input))
             else:
                 print('Not a selection')
                 print('Please select a value from the list')
