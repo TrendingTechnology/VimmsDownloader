@@ -1,6 +1,7 @@
 """Helper functions for the main script"""
 from typing import List
 import os
+import random
 import sys
 from src import models
 
@@ -60,7 +61,24 @@ __selections: list[dict[int, str]] = [
         17: 'PSP'
     },
 ]
-
+__user_agents: List[str] = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' +
+    ' AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' +
+    ' (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' +
+    ' (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+    + ' Chrome/91.0.4472.164 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)'
+    + ' Version/14.1.1 Safari/605.1.15',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)'
+    + ' Chrome/92.0.4515.107 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)' +
+    ' Chrome/91.0.4472.114 Safari/537.36'
+]
 __to_uri: dict[str, str] = {
     'NES': 'NES',
     'Genesis': 'Genesis',
@@ -133,7 +151,7 @@ def __check_if_system_dir_created(path: str, system: str):
             return True
 
 
-def __create_all_no_home(path):
+def __create_all_no_home(path: str):
     """Used in bulk mode to create all the directories and sub-directories"""
     __create_rom_home_dir(path)
     for x in __selections:
@@ -143,7 +161,7 @@ def __create_all_no_home(path):
                 __create_alpha_num_structure(path, x[value])
 
 
-def __create_all_w_home(path):
+def __create_all_w_home(path: str):
     """Used in bulk mode to create all the directories and sub-directories \
             except 'ROMS' Directory"""
     for x in __selections:
@@ -153,7 +171,7 @@ def __create_all_w_home(path):
                 __create_alpha_num_structure(path, x[value])
 
 
-def __create_sel_w_home(path, userselections: List[str]):
+def __create_sel_w_home(path: str, userselections: List[str]):
     """Used in bulk mode when the user only wants selected systems"""
     for x in userselections:
         if not __check_if_system_dir_created(path,
@@ -162,7 +180,7 @@ def __create_sel_w_home(path, userselections: List[str]):
             __create_alpha_num_structure(path, __selections[int(x)][int(x)])
 
 
-def __create_sel_no_home(path, userselections: List[str]):
+def __create_sel_no_home(path: str, userselections: List[str]):
     """Used in bulk mode when the user only wants selected systems"""
     __create_rom_home_dir(path)
     for x in userselections:
@@ -174,16 +192,17 @@ def __create_sel_no_home(path, userselections: List[str]):
 
 def create_directory_structure(config: models.Config, path: str):
     """Public helper to be used in bulk mode"""
-    if config.All:
-        if not __check_if_home_dir_created(path):
-            __create_all_no_home(path)
-        if __check_if_home_dir_created(path):
-            __create_all_w_home(path)
-    if not config.All:
-        if not __check_if_home_dir_created(path):
-            __create_sel_no_home(path, config.Selections)
-        if __check_if_home_dir_created(path):
-            __create_sel_w_home(path, config.Selections)
+    if config.Selections != None:
+        if config.All:
+            if not __check_if_home_dir_created(path):
+                __create_all_no_home(path)
+            if __check_if_home_dir_created(path):
+                __create_all_w_home(path)
+        if not config.All:
+            if not __check_if_home_dir_created(path):
+                __create_sel_no_home(path, config.Selections)
+            if __check_if_home_dir_created(path):
+                __create_sel_w_home(path, config.Selections)
 
 
 def selection_to_uri(selection: str):
@@ -204,6 +223,11 @@ def get_selection_from_num(selection: int):
     return __selections[selection][selection]
 
 
+def get_random_ua() -> str:
+    index: int = random.randint(0, len(__user_agents) - 1)
+    return __user_agents[index]
+
+
 def print_welcome():
     """Prints the welcome message..\
              hmm yes the floor is made of floor"""
@@ -216,5 +240,23 @@ def print_welcome():
      \___/|_|_| |_| |_|_| |_| |_|___/\_____/\__,_|_|_|  |___/ \___/ \_/\_/ |_| |_|_|\___/ \__,_|\__,_|\___|_|
         """)
     print('Welcome to the Vimm\'s Lair Download Script')
-    print('Please use responsibily, I am not liable for any damages,'
-          + 'or legal issues caused by using this script')
+    print('Please use responsibily, I am not liable for any damages,' +
+          'or legal issues caused by using this script')
+
+
+def get_search_url(searchselection: models.SearchSelection) -> str:
+    if searchselection.System != 'general':
+        url: str = ('https://vimm.net/vault/?p=list&system=' +
+                    f'{selection_to_uri(searchselection.System)}' +
+                    f'&q={searchselection.Query}')
+        return url
+    else:
+        url: str = (
+            f'https://vimm.net/vault/?p=list&q={searchselection.Query}')
+        return url
+
+
+def is_general_search(search_selection: models.SearchSelection):
+    if search_selection.System == 'general':
+        return True
+    return False
