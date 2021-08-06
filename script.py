@@ -73,13 +73,20 @@ def get_section_of_roms(section: str) -> List[models.ROM]:
                     even = None
     except:
         e = sys.exc_info()[0]
-        print('Failed on getting ROM ID')
-        print(e)
     return roms
+
+
+def get_every_system_roms() -> List[models.BulkSystemROMS]:
+    every_rom: List[models.BulkSystemROMS] = []
+    for i in range(0, 17):
+        system_roms:models.BulkSystemROMS = get_all_system_roms(helpers.selection_to_uri(helpers.get_selection_from_num(i)))
+        every_rom.append(system_roms)
+    return every_rom
 
 
 def get_all_system_roms(system: str) -> models.BulkSystemROMS:
     """Used in bulk mode to get the home page URI for every rom on a system"""
+    print('getting ' + system +"'s roms")
     section_roms: List[models.SectionofROMs] = []
     section_urls: List[str] = [
         f'?p=list&system={system}&section=number', f'{system}/a',
@@ -202,7 +209,7 @@ def get_system_search_section(
                     even = None
     except BaseException:
         e = sys.exc_info()[0]
-        print('Failed on getting ROM ID')
+        print('Failed on system search section')
         print(e)
     return roms
 
@@ -249,7 +256,7 @@ def get_general_search_section(
                     even = None
     except BaseException:
         e = sys.exc_info()[0]
-        print('Failed on getting ROM ID')
+        print('Failed getting general search section')
         print(e)
     return roms
 
@@ -293,7 +300,7 @@ def get_bulk_selections(config: models.Config) -> models.Config:
             break
         try:
             if not (int(user_input) > 17 or int(user_input) < 0):
-                config.Selections.append(user_input)
+                config.Selections.append(int(user_input))
             else:
                 print('Not a selection')
                 print('Please select a value from the list')
@@ -492,10 +499,24 @@ def extract_and_delete_search_results(download: str) -> None:
     delete_file('.', download)
 
 
+def get_user_sel_bulk_roms(config:models.Config) -> List[models.BulkSystemROMS]:
+    selected_bulk :List[models.BulkSystemROMS] = []
+    for i in config.Selections:
+        system_roms: models.BulkSystemROMS =\
+            get_all_system_roms(helpers.selection_to_uri(helpers.get_selection_from_num(i)))
+        selected_bulk.append(system_roms)
+    return selected_bulk
+
+
 def run_selected_program(config: models.Config):
     """Runs selected program"""
     if config.BulkMode:
         config = get_bulk_selections(config)
+        if config.All:
+            all_roms:List[models.BulkSystemROMS] = get_every_system_roms()
+        else:
+            user_selected_bulk:List[models.BulkSystemROMS] = get_user_sel_bulk_roms(config)
+
     if config.SearchMode:
         run_search_loop(config)
     return config

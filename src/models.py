@@ -51,7 +51,7 @@ class Config:
                  Extract: bool = False,
                  BulkMode: bool = False,
                  SearchMode: bool = False):
-        self.Selections: List[str] = []
+        self.Selections: List[int] = []
         self.All = All
         self.Extract = Extract
         self.SearchMode = SearchMode
