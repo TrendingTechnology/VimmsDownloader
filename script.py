@@ -49,22 +49,22 @@ def get_section_of_roms(section: str) -> List[models.ROM]:
             'table', {'class': 'rounded centered cellpadding1 hovertable'})
         for j in result.contents:
             if j != '\n':
-                newsoup = BeautifulSoup(str(j), 'html.parser')
-                odd = newsoup.find(attrs={'class': 'odd'})
-                even = newsoup.find(attrs={'class': 'even'})
-                if (odd is not None):
-                    resultsoup = BeautifulSoup(str(odd.contents[0]),
+                new_soup = BeautifulSoup(str(j), 'html.parser')
+                odd = new_soup.find(attrs={'class': 'odd'})
+                even = new_soup.find(attrs={'class': 'even'})
+                if odd is not None:
+                    result_soup = BeautifulSoup(str(odd.contents[0]),
                                                'html.parser')
-                    result = resultsoup.find('a', href=True)
+                    result = result_soup.find('a', href=True)
                     name = result.contents[0]
                     result = result['href']
                     rom = models.ROM(name, result)
                     roms.append(rom)
                     odd = None
-                if (even is not None):
-                    resultsoup = BeautifulSoup(str(even.contents[0]),
+                if even is not None:
+                    result_soup = BeautifulSoup(str(even.contents[0]),
                                                'html.parser')
-                    result = resultsoup.find('a', href=True)
+                    result = result_soup.find('a', href=True)
                     name = result.contents[0]
                     result = result['href']
                     rom = models.ROM(name, result)
@@ -79,8 +79,8 @@ def get_section_of_roms(section: str) -> List[models.ROM]:
 
 def get_all_system_roms(system: str) -> models.BulkSystemROMS:
     """Used in bulk mode to get the home page URI for every rom on a system"""
-    sectionroms: List[models.SectionofROMs] = []
-    sectionurls: List[str] = [
+    section_roms: List[models.SectionofROMs] = []
+    section_urls: List[str] = [
         f'?p=list&system={system}&section=number', f'{system}/a',
         f'{system}/b', f'{system}/c', f'{system}/d', f'{system}/e',
         f'{system}/f', f'{system}/g', f'{system}/h', f'{system}/i',
@@ -90,16 +90,16 @@ def get_all_system_roms(system: str) -> models.BulkSystemROMS:
         f'{system}/v', f'{system}/w', f'{system}/x', f'{system}/y',
         f'{system}/z'
     ]
-    for x in sectionurls:
+    for x in section_urls:
         roms: List[models.ROM] = get_section_of_roms(x)
         section: models.SectionofROMs = models.SectionofROMs(x, roms)
-        sectionroms.append(section)
-    SystemROMS: models.BulkSystemROMS = models.BulkSystemROMS(
-        sectionroms, system)
-    return SystemROMS
+        section_roms.append(section)
+    system_roms: models.BulkSystemROMS = models.BulkSystemROMS(
+        section_roms, system)
+    return system_roms
 
 
-def download_file(pageurl: str, downloadurl: str, path: str) -> str:
+def download_file(page_url: str, download_url: str, path: str) -> str:
     """Downloads one rom from the uri, downloadid\
             downloads to the path director"""
     x: int = 0
@@ -107,19 +107,19 @@ def download_file(pageurl: str, downloadurl: str, path: str) -> str:
     while True:
         headers: dict[str, str] = {
             'Accept':
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image' +
-            '/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                'text/html,application/xhtml+xml,application/xml;q=0.9,image' +
+                '/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
             'Accept-Encoding':
-            'gzip, deflate, br',
+                'gzip, deflate, br',
             'Connection':
-            'keep-alive',
+                'keep-alive',
             'User-Agent':
-            helpers.get_random_ua(),
+                helpers.get_random_ua(),
             'Referer':
-            f'https://vimm.net/vault{pageurl}'
+                f'https://vimm.net/vault{page_url}'
         }
         file: Response = requests.get(
-            f'https://download2.vimm.net/download/?mediaId={downloadurl}',
+            f'https://download2.vimm.net/download/?mediaId={download_url}',
             headers=headers,
             allow_redirects=True)
         if file.status_code == 200:
@@ -129,7 +129,7 @@ def download_file(pageurl: str, downloadurl: str, path: str) -> str:
             fullpath = os.path.join(path, filename)
             open(fullpath, 'wb').write(file.content)
         if x == 4:
-            print(f'5 Requests made to {downloadurl} and failed')
+            print(f'5 Requests made to {download_url} and failed')
             break
         if file.status_code != 200:
             x += 1
@@ -139,21 +139,21 @@ def download_file(pageurl: str, downloadurl: str, path: str) -> str:
 
 def get_search_selection(config: models.Config) -> models.Config:
     """Gets search criteria for search mode"""
-    searchselection: models.SearchSelection = models.SearchSelection()
+    search_selection: models.SearchSelection = models.SearchSelection()
     print('\nPlease select what system you want to search')
     print('Press Enter to do a general site wide search')
     helpers.print_console_list()
     while True:
-        userinput: str = sys.stdin.readline()
+        user_input: str = sys.stdin.readline()
         try:
-            if (userinput == '\n'):
-                searchselection.System = 'general'
-                config.Query.SearchSelections = searchselection
+            if user_input == '\n':
+                search_selection.System = 'general'
+                config.Query.SearchSelections = search_selection
                 break
-            if (not (int(userinput) > 17 or int(userinput) < 0)):
-                searchselection.System = \
-                    helpers.get_selection_from_num(int(userinput))
-                config.Query.SearchSelections = searchselection
+            if not (int(user_input) > 17 or int(user_input) < 0):
+                search_selection.System = \
+                    helpers.get_selection_from_num(int(user_input))
+                config.Query.SearchSelections = search_selection
                 break
             else:
                 print('Not a selection')
@@ -162,57 +162,44 @@ def get_search_selection(config: models.Config) -> models.Config:
             print('Please select a value from the list')
             continue
     print('Input what rom you want to search for')
-    searchselection.Query = sys.stdin.readline()
+    search_selection.Query = sys.stdin.readline()
     return config
 
 
 def get_search_section(
-        searchselection: models.SearchSelection) -> List[models.ROM]:
+    search_selection: models.SearchSelection) -> List[models.ROM]:
     """Gets a section of roms from the search selection"""
     roms: List[models.ROM] = []
     try:
-        page = requests.get(helpers.get_search_url(searchselection))
+        page = requests.get(helpers.get_search_url(search_selection))
         soup: BeautifulSoup = BeautifulSoup(page.content, 'html.parser')
         result = soup.find(
             'table', {'class': 'rounded centered cellpadding1 hovertable'})
-        if searchselection.System != 'general':
-            for j in result.contents:
-                if j != '\n':
-                    newsoup: BeautifulSoup = BeautifulSoup(
-                        str(j), 'html.parser')
-                    odd = newsoup.find(attrs={'class': 'odd'})
-                    even = newsoup.find(attrs={'class': 'even'})
-                    if (odd is not None):
-                        resultsoup: BeautifulSoup = BeautifulSoup(
-                            str(odd.contents[0]), 'html.parser')
-                        result = resultsoup.find('a', href=True)
-                        name = result.contents[0]
-                        result = result['href']
-                        rom = models.ROM(name, result)
-                        roms.append(rom)
-                        odd = None
-                    if (even is not None):
-                        resultsoup = BeautifulSoup(str(even.contents[0]),
-                                                   'html.parser')
-                        result = resultsoup.find('a', href=True)
-                        name = result.contents[0]
-                        result = result['href']
-                        rom = models.ROM(name, result)
-                        roms.append(rom)
-                        even = None
-        else:
-            for j in result.contents:
-                if j != '\n':
-                    newsoup: BeautifulSoup = BeautifulSoup(
-                        str(j), 'html.parser')
-                    odd = newsoup.find(attrs={'class': 'odd'})
-                    even = newsoup.find(attrs={'class': 'even'})
-                    if (odd is not None):
-                        resultsoup: BeautifulSoup = BeautifulSoup(
-                            str(odd.contents[0]), 'html.parser')
-			result = 
-
-    except:
+        for j in result.contents:
+            if j != '\n':
+                newsoup: BeautifulSoup = BeautifulSoup(
+                    str(j), 'html.parser')
+                odd = newsoup.find(attrs={'class': 'odd'})
+                even = newsoup.find(attrs={'class': 'even'})
+                if odd is not None:
+                    resultsoup: BeautifulSoup = BeautifulSoup(
+                        str(odd.contents[0]), 'html.parser')
+                    result = resultsoup.find('a', href=True)
+                    name = result.contents[0]
+                    result = result['href']
+                    rom = models.ROM(name, result)
+                    roms.append(rom)
+                    odd = None
+                if even is not None:
+                    resultsoup = BeautifulSoup(str(even.contents[0]),
+                                               'html.parser')
+                    result = resultsoup.find('a', href=True)
+                    name = result.contents[0]
+                    result = result['href']
+                    rom = models.ROM(name, result)
+                    roms.append(rom)
+                    even = None
+    except BaseException:
         e = sys.exc_info()[0]
         print('Failed on getting ROM ID')
         print(e)
@@ -227,13 +214,13 @@ def get_program_mode() -> models.Config:
     print('Default is \'b\'')
     while True:
         userinput: str = sys.stdin.readline()
-        if (userinput == '\n'):
+        if userinput == '\n':
             config.BulkMode = True
             break
-        if (userinput.lower() == 'b\n'):
+        if userinput.lower() == 'b\n':
             config.BulkMode = True
             break
-        if (userinput.lower() == 's\n'):
+        if userinput.lower() == 's\n':
             config.SearchMode = True
             break
         else:
@@ -245,19 +232,19 @@ def get_program_mode() -> models.Config:
 
 def get_bulk_selections(config: models.Config) -> models.Config:
     """Gets input in bulk mode if the user wants to only download specific consoles"""
-    print('Press Enter to download all of Vimm\'s roms or select from the\
-		following of what systems you would like')
+    print("Press Enter to download all of Vimm's roms or select from the\
+        following of what systems you would like")
     print('Enter \'q\' when finished if choosing specific consoles')
     helpers.print_console_list()
     while True:
         userinput: str = sys.stdin.readline()
-        if (userinput == '\n' and len(config.Selections) == 0):
+        if userinput == '\n' and len(config.Selections) == 0:
             config.All = True
             break
-        if (userinput == 'q\n'):
+        if userinput == 'q\n':
             break
         try:
-            if (not (int(userinput) > 17 or int(userinput) < 0)):
+            if not (int(userinput) > 17 or int(userinput) < 0):
                 config.Selections.append(userinput)
             else:
                 print('Not a selection')
@@ -277,16 +264,16 @@ def get_extraction_status(config: models.Config) -> models.Config:
     print('Default is \'y\'')
     while True:
         userinput: str = sys.stdin.readline()
-        if (userinput == '\n'):
+        if userinput == '\n':
             config.Extract = True
             break
-        if (userinput.lower() == 'y\n'):
+        if userinput.lower() == 'y\n':
             config.Extract = True
             break
-        if (userinput.lower() == 'n\n'):
+        if userinput.lower() == 'n\n':
             config.Extract = False
             break
-        if ((userinput.lower() != 'n\n') and (userinput.lower() != 'y\n')):
+        if (userinput.lower() != 'n\n') and (userinput.lower() != 'y\n'):
             print('Not a selection')
             print('Please Select Y/n')
             continue
@@ -310,15 +297,15 @@ def get_search_result_input(roms: List[models.ROM]) -> List[int]:
         '\nSelect which roms you would like to download and then enter \'d\'')
     while True:
         userinput = sys.stdin.readline()
-        if (userinput == '\n'):
+        if userinput == '\n':
             print('Please select a rom or press \'q\' to quit program')
             continue
-        if (userinput == 'q\n'):
+        if userinput == 'q\n':
             exit()
-        if (userinput == 'd\n'):
+        if userinput == 'd\n':
             break
         try:
-            if (not (int(userinput) > len(roms) - 1 or int(userinput) < 0)):
+            if not (int(userinput) > len(roms) - 1 or int(userinput) < 0):
                 downloadselroms.append(int(userinput))
             else:
                 print('Not a selection')
@@ -338,7 +325,7 @@ def download_search_results(downloads: List[int], roms: List[models.ROM],
                                      get_rom_download_url(roms[x].URI), '.')
         if config.Extract:
             t = Thread(target=extract_and_delete_search_results,
-                       args=(downloadname, ))
+                       args=(downloadname,))
             t.start()
             threads.append(t)
     for t in threads:
@@ -350,7 +337,7 @@ def extract_file(path: str, name: str) -> None:
     fullpath: str = os.path.join(path, name)
     basefilename: List[str] = re.findall(r'(.+?)(\.[^.]*$|$)', name)
     filename: str = str(basefilename[0][0])
-    filetype = re.findall(r'((?:zip|7z))', fullpath)
+    filetype = re.findall(r'(zip|7z)', fullpath)
     try:
         if str(filetype[0]).lower() == 'zip':
             with (zipfile.ZipFile(fullpath, 'r')) as z:
@@ -375,14 +362,14 @@ def check_if_need_to_re_search() -> bool:
     print('\nDo you want to search again?(y/N)')
     while True:
         userinput = sys.stdin.readline()
-        if (userinput == '\n'):
+        if userinput == '\n':
             break
-        if (userinput.lower() == 'y\n'):
+        if userinput.lower() == 'y\n':
             search = True
             break
-        if (userinput.lower() == 'n\n'):
+        if userinput.lower() == 'n\n':
             break
-        if ((userinput.lower() != 'n\n') and userinput.lower() != 'y\n'):
+        if (userinput.lower() != 'n\n') and userinput.lower() != 'y\n':
             print('Not a selection')
             print('Please Select Y/n')
             continue
