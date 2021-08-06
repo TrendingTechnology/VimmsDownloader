@@ -254,3 +254,9 @@ def get_search_url(searchselection: models.SearchSelection) -> str:
         url: str = (
             f'https://vimm.net/vault/?p=list&q={searchselection.Query}')
         return url
+
+
+def is_general_search(search_selection: models.SearchSelection):
+    if search_selection.System == 'general':
+        return True
+    return False

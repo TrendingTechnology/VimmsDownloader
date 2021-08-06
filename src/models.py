@@ -5,9 +5,10 @@ from typing import List
 
 class ROM:
     """Used to hold a details about a single ROM"""
-    def __init__(self, Name: str, URI: str):
+    def __init__(self, Name: str, URI: str, Console:str = ''):
         self.Name = Name
         self.URI = URI
+        self.Console = Console
 
 
 # Sections are either a search query or #-A-Z subsections on vimms
