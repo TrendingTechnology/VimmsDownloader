@@ -138,14 +138,14 @@ def __create_rom_system_dir(path: str, system: str):
 
 
 def __check_if_home_dir_created(path: str):
-    """Checks for the existance of the 'ROMS' directory"""
+    """Checks for the existence of the 'ROMS' directory"""
     for x in os.listdir(path):
         if x == 'ROMS':
             return True
 
 
 def __check_if_system_dir_created(path: str, system: str):
-    """Checks for the existance of a specific system directory in the 'ROMS' directory"""
+    """Checks for the existence of a specific system directory in the 'ROMS' directory"""
     for x in os.listdir(os.path.join(path, 'ROMS')):
         if x == system:
             return True
