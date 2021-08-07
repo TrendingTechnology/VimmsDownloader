@@ -2,9 +2,9 @@
 
 Vimms-DL is a tool for downloading ROMs from the site Vimm's Lair
 
+![alt text](https://github.com/BrianTipton1/VimmsDownloader/tree/master/readme/welcome.png)
+
 ## Installation
-
-
 
 ```bash
 git clone https://github.com/BrianTipton1/VimmsDownloader.git
@@ -25,7 +25,8 @@ python3 script.py
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-Please make sure to update tests as appropriate.
+## TODO 
+- Multiple ROM downloads at the same time
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
