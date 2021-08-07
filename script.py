@@ -73,13 +73,21 @@ def get_section_of_roms(section: str) -> List[models.ROM]:
                     even = None
     except:
         e = sys.exc_info()[0]
-        print('Failed on getting ROM ID')
-        print(e)
     return roms
+
+
+def get_every_system_roms() -> List[models.BulkSystemROMS]:
+    every_rom: List[models.BulkSystemROMS] = []
+    for i in range(0, 17):
+        system_roms: models.BulkSystemROMS = get_all_system_roms(
+            helpers.selection_to_uri(helpers.get_selection_from_num(i)))
+        every_rom.append(system_roms)
+    return every_rom
 
 
 def get_all_system_roms(system: str) -> models.BulkSystemROMS:
     """Used in bulk mode to get the home page URI for every rom on a system"""
+    print('Getting a list of roms for the ' + system)
     section_roms: List[models.SectionofROMs] = []
     section_urls: List[str] = [
         f'?p=list&system={system}&section=number', f'{system}/a',
@@ -129,6 +137,7 @@ def download_file(page_url: str, download_url: str, path: str) -> str:
             filename = filenames[0]
             full_path = os.path.join(path, filename)
             open(full_path, 'wb').write(file.content)
+            print('Downloaded ' + filename + '!')
             break
         if x == 4:
             print(f'5 Requests made to {download_url} and failed')
@@ -202,7 +211,7 @@ def get_system_search_section(
                     even = None
     except BaseException:
         e = sys.exc_info()[0]
-        print('Failed on getting ROM ID')
+        print('Failed on system search section')
         print(e)
     return roms
 
@@ -249,7 +258,7 @@ def get_general_search_section(
                     even = None
     except BaseException:
         e = sys.exc_info()[0]
-        print('Failed on getting ROM ID')
+        print('Failed getting general search section')
         print(e)
     return roms
 
@@ -293,7 +302,7 @@ def get_bulk_selections(config: models.Config) -> models.Config:
             break
         try:
             if not (int(user_input) > 17 or int(user_input) < 0):
-                config.Selections.append(user_input)
+                config.Selections.append(int(user_input))
             else:
                 print('Not a selection')
                 print('Please select a value from the list')
@@ -400,7 +409,10 @@ def download_search_results(downloads: List[int], roms: List[models.ROM],
                                       get_rom_download_url(roms[x].URI), '.')
         if config.Extract:
             t = Thread(target=extract_and_delete_search_results,
-                       args=(download_name, ))
+                       args=(
+                           '.',
+                           download_name,
+                       ))
             t.start()
             threads.append(t)
     for t in threads:
@@ -486,19 +498,68 @@ def run_search_loop(config: models.Config) -> None:
             exit()
 
 
-def extract_and_delete_search_results(download: str) -> None:
+def extract_and_delete_search_results(path: str, download: str) -> None:
     """Used to extract and delete the archives in search mode"""
-    extract_file('.', download)
-    delete_file('.', download)
+    extract_file(path, download)
+    print('Finished extracting ' + download + '!')
+    delete_file(path, download)
 
 
-def run_selected_program(config: models.Config):
+def get_user_sel_bulk_roms(
+        config: models.Config) -> List[models.BulkSystemROMS]:
+    selected_bulk: List[models.BulkSystemROMS] = []
+    for i in config.Selections:
+        system_roms: models.BulkSystemROMS =\
+            get_all_system_roms(helpers.selection_to_uri(helpers.get_selection_from_num(i)))
+        selected_bulk.append(system_roms)
+    return selected_bulk
+
+
+def download_bulk_roms(config: models.Config,
+                       roms: List[models.BulkSystemROMS]):
+    threads: List[Thread] = []
+    for system in roms:
+        print('Starting to download all roms for the ' + system.System + '!')
+        for section in system.Sections:
+            for rom in section.ROMS:
+                download_name = download_file(rom.URI,
+                                              get_rom_download_url(rom.URI),
+                                              section.Path)
+                if config.Extract:
+                    t = Thread(target=extract_and_delete_search_results,
+                               args=(
+                                   section.Path,
+                                   download_name,
+                               ))
+                    t.start()
+                    threads.append(t)
+        for t in threads:
+            t.join()
+
+
+def run_selected_program(config: models.Config) -> None:
     """Runs selected program"""
     if config.BulkMode:
         config = get_bulk_selections(config)
+        if config.All:
+            all_roms: List[models.BulkSystemROMS] = get_every_system_roms()
+            all_roms: List[
+                models.BulkSystemROMS] = helpers.generate_path_to_bulk_roms(
+                    all_roms)
+            helpers.create_directory_structure(config, os.getcwd())
+            download_bulk_roms(config, all_roms)
+            exit()
+        else:
+            user_selected_bulk: List[
+                models.BulkSystemROMS] = get_user_sel_bulk_roms(config)
+            user_selected_bulk: List[
+                models.BulkSystemROMS] = helpers.generate_path_to_bulk_roms(
+                    user_selected_bulk)
+            helpers.create_directory_structure(config, os.getcwd())
+            download_bulk_roms(config, user_selected_bulk)
+            exit()
     if config.SearchMode:
         run_search_loop(config)
-    return config
 
 
 def main() -> None:

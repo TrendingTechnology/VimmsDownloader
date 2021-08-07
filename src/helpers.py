@@ -138,14 +138,14 @@ def __create_rom_system_dir(path: str, system: str):
 
 
 def __check_if_home_dir_created(path: str):
-    """Checks for the existance of the 'ROMS' directory"""
+    """Checks for the existence of the 'ROMS' directory"""
     for x in os.listdir(path):
         if x == 'ROMS':
             return True
 
 
 def __check_if_system_dir_created(path: str, system: str):
-    """Checks for the existance of a specific system directory in the 'ROMS' directory"""
+    """Checks for the existence of a specific system directory in the 'ROMS' directory"""
     for x in os.listdir(os.path.join(path, 'ROMS')):
         if x == system:
             return True
@@ -171,19 +171,19 @@ def __create_all_w_home(path: str):
                 __create_alpha_num_structure(path, x[value])
 
 
-def __create_sel_w_home(path: str, userselections: List[str]):
-    """Used in bulk mode when the user only wants selected systems"""
-    for x in userselections:
+def __create_sel_w_home(path: str, user_selections: List[str]):
+    """Used in bulk mode when the user only wants selected systems if home dir is already created"""
+    for x in user_selections:
         if not __check_if_system_dir_created(path,
                                              __selections[int(x)][int(x)]):
             __create_rom_system_dir(path, __selections[int(x)][int(x)])
             __create_alpha_num_structure(path, __selections[int(x)][int(x)])
 
 
-def __create_sel_no_home(path: str, userselections: List[str]):
+def __create_sel_no_home(path: str, user_selections: List[str]):
     """Used in bulk mode when the user only wants selected systems"""
     __create_rom_home_dir(path)
-    for x in userselections:
+    for x in user_selections:
         if not __check_if_system_dir_created(path,
                                              __selections[int(x)][int(x)]):
             __create_rom_system_dir(path, __selections[int(x)][int(x)])
@@ -224,6 +224,7 @@ def get_selection_from_num(selection: int):
 
 
 def get_random_ua() -> str:
+    """Returns a random user agent for download method"""
     index: int = random.randint(0, len(__user_agents) - 1)
     return __user_agents[index]
 
@@ -240,23 +241,40 @@ def print_welcome():
      \___/|_|_| |_| |_|_| |_| |_|___/\_____/\__,_|_|_|  |___/ \___/ \_/\_/ |_| |_|_|\___/ \__,_|\__,_|\___|_|
         """)
     print('Welcome to the Vimm\'s Lair Download Script')
-    print('Please use responsibily, I am not liable for any damages,' +
+    print('Please use responsibly, I am not liable for any damages,' +
           'or legal issues caused by using this script')
 
 
-def get_search_url(searchselection: models.SearchSelection) -> str:
-    if searchselection.System != 'general':
+def get_search_url(search_selection: models.SearchSelection) -> str:
+    """Returns a hydrated search_url with the correct system and query"""
+    if search_selection.System != 'general':
         url: str = ('https://vimm.net/vault/?p=list&system=' +
-                    f'{selection_to_uri(searchselection.System)}' +
-                    f'&q={searchselection.Query}')
+                    f'{selection_to_uri(search_selection.System)}' +
+                    f'&q={search_selection.Query}')
         return url
     else:
         url: str = (
-            f'https://vimm.net/vault/?p=list&q={searchselection.Query}')
+            f'https://vimm.net/vault/?p=list&q={search_selection.Query}')
         return url
 
 
 def is_general_search(search_selection: models.SearchSelection):
+    """Returns bool on if it is a general search or not"""
     if search_selection.System == 'general':
         return True
     return False
+
+
+def generate_path_to_bulk_roms(
+        roms: List[models.BulkSystemROMS]) -> List[models.BulkSystemROMS]:
+    """Creates the absolute path to where each rom should be downloaded"""
+    for system in roms:
+        for section in system.Sections:
+            if not 'number' in section.Section:
+                path: str = os.path.join(os.getcwd(), "ROMS", section.Section)
+                section.Path = path
+            else:
+                path: str = os.path.join(os.getcwd(), "ROMS", system.System,
+                                         '#')
+                section.Path = path
+    return roms

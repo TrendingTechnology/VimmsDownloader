@@ -16,9 +16,10 @@ class ROM:
 
 class SectionofROMs:
     """Used to hold a details about multiple ROMs"""
-    def __init__(self, Section: str, ROMS: List[ROM]):
+    def __init__(self, Section: str, ROMS: List[ROM], Path: str = ''):
         self.Section = Section
         self.ROMS = ROMS
+        self.Path = Path
 
 
 class SearchSelection:
@@ -51,7 +52,7 @@ class Config:
                  Extract: bool = False,
                  BulkMode: bool = False,
                  SearchMode: bool = False):
-        self.Selections: List[str] = []
+        self.Selections: List[int] = []
         self.All = All
         self.Extract = Extract
         self.SearchMode = SearchMode
