@@ -2,7 +2,7 @@
 
 Vimms-DL is a tool for downloading ROMs from the site Vimm's Lair
 
-![alt text](https://github.com/BrianTipton1/VimmsDownloader/tree/master/readme/welcome.png)
+![alt text](https://github.com/BrianTipton1/VimmsDownloader/blob/master/README/welcome.png)
 
 ## Installation
 
