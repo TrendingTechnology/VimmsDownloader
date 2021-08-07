@@ -263,3 +263,18 @@ def is_general_search(search_selection: models.SearchSelection):
     if search_selection.System == 'general':
         return True
     return False
+
+
+def generate_path_to_bulk_roms(
+        roms: List[models.BulkSystemROMS]) -> List[models.BulkSystemROMS]:
+    """Creates the absolute path to where each rom should be downloaded"""
+    for system in roms:
+        for section in system.Sections:
+            if not 'number' in section.Section:
+                path: str = os.path.join(os.getcwd(), "ROMS", section.Section)
+                section.Path = path
+            else:
+                path: str = os.path.join(os.getcwd(), "ROMS", system.System,
+                                         '#')
+                section.Path = path
+    return roms
