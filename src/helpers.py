@@ -241,8 +241,8 @@ def print_welcome():
      \___/|_|_| |_| |_|_| |_| |_|___/\_____/\__,_|_|_|  |___/ \___/ \_/\_/ |_| |_|_|\___/ \__,_|\__,_|\___|_|
         """)
     print('Welcome to the Vimm\'s Lair Download Script')
-    print('Please use responsibly, I am not liable for any damages,' +
-          'or legal issues caused by using this script')
+    print('Please use responsibly, I am not liable for any damages' +
+          ' or legal issues caused by using this script')
 
 
 def get_search_url(search_selection: models.SearchSelection) -> str:

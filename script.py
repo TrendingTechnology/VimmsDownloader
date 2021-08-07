@@ -266,8 +266,10 @@ def get_general_search_section(
 def get_program_mode() -> models.Config:
     """Gets input from user to go into either (Bulk/Search) mode"""
     config: models.Config = models.Config()
-    print('\nWould you like to do bulk download or search for specific?')
-    print('(B/s)')
+    print(
+        '\nWould you like to bulk download roms for systems or search for specific roms? (B/s)'
+    )
+    print("For bulk mode use 'b' and search mode use 's'")
     print('Default is \'b\'')
     while True:
         user_input: str = sys.stdin.readline()
@@ -289,16 +291,16 @@ def get_program_mode() -> models.Config:
 
 def get_bulk_selections(config: models.Config) -> models.Config:
     """Gets input in bulk mode if the user wants to only download specific consoles"""
-    print("Press Enter to download all of Vimm's roms or select from the\
-        following of what systems you would like")
-    print('Enter \'q\' when finished if choosing specific consoles')
+    print("Press Enter to download all of Vimm's roms or select from the" +
+          " following of what systems you would like to download")
+    print('Enter \'d\' when finished if choosing specific consoles\n')
     helpers.print_console_list()
     while True:
         user_input: str = sys.stdin.readline()
         if user_input == '\n' and len(config.Selections) == 0:
             config.All = True
             break
-        if user_input == 'q\n':
+        if user_input == 'd\n':
             break
         try:
             if not (int(user_input) > 17 or int(user_input) < 0):
