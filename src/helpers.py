@@ -5,7 +5,7 @@ import random
 import sys
 from src import models
 
-__selections: list[dict[int, str]] = [
+__selections = [
     {
         0: 'NES'
     },
@@ -79,7 +79,7 @@ __user_agents: List[str] = [
     'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)' +
     ' Chrome/91.0.4472.114 Safari/537.36'
 ]
-__to_uri: dict[str, str] = {
+__to_uri = {
     'NES': 'NES',
     'Genesis': 'Genesis',
     'SNES': 'SNES',

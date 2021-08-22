@@ -1,7 +1,6 @@
 """The Vimms-DL Tool"""
 from prettytable import PrettyTable
 import zipfile
-from threading import Thread
 import re
 import sys
 import os
@@ -405,20 +404,11 @@ def get_search_result_input(roms: List[models.ROM]) -> List[int]:
 def download_search_results(downloads: List[int], roms: List[models.ROM],
                             config: models.Config) -> None:
     """Downloads the users specified roms in search mode"""
-    threads: List[Thread] = []
     for x in downloads:
         download_name = download_file(roms[x].URI,
                                       get_rom_download_url(roms[x].URI), '.')
         if config.Extract:
-            t = Thread(target=extract_and_delete_search_results,
-                       args=(
-                           '.',
-                           download_name,
-                       ))
-            t.start()
-            threads.append(t)
-    for t in threads:
-        t.join()
+            extract_and_delete_search_results('.',download_name)
 
 
 def extract_file(path: str, name: str) -> None:
@@ -499,7 +489,7 @@ def run_search_loop(config: models.Config) -> None:
         else:
             exit()
 
-
+# TODO FIX THREADING
 def extract_and_delete_search_results(path: str, download: str) -> None:
     """Used to extract and delete the archives in search mode"""
     extract_file(path, download)
@@ -519,7 +509,6 @@ def get_user_sel_bulk_roms(
 
 def download_bulk_roms(config: models.Config,
                        roms: List[models.BulkSystemROMS]):
-    threads: List[Thread] = []
     for system in roms:
         print('Starting to download all roms for the ' + system.System + '!')
         for section in system.Sections:
@@ -528,15 +517,8 @@ def download_bulk_roms(config: models.Config,
                                               get_rom_download_url(rom.URI),
                                               section.Path)
                 if config.Extract:
-                    t = Thread(target=extract_and_delete_search_results,
-                               args=(
-                                   section.Path,
-                                   download_name,
-                               ))
-                    t.start()
-                    threads.append(t)
-        for t in threads:
-            t.join()
+                    extract_and_delete_search_results(section.Path,download_name)
+
 
 
 def run_selected_program(config: models.Config) -> None:
