@@ -2,7 +2,7 @@
 
 Vimms-DL is a tool for downloading ROMs from the site Vimm's Lair
 
-![alt text](https://github.com/BrianTipton1/VimmsDownloader/blob/master/README/welcome.png)
+![alt text](https://github.com/TrendingTechnology/VimmsDownloader/blob/master/README/welcome.png)
 
 ## Installation
 
@@ -18,7 +18,7 @@ python3 script.py
 #### Search Mode
 - Search can be system specific or a general search across the whole site
 - Example query below\
-  ![alt text](https://github.com/BrianTipton1/VimmsDownloader/blob/master/README/search.png)
+  ![alt text](https://github.com/TrendingTechnology/VimmsDownloader/blob/master/README/search.png)
 
 #### Bulk Mode
 - Can be used to download specified systems or all of them
