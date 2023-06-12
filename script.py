@@ -45,31 +45,19 @@ def get_section_of_roms(section: str) -> List[models.ROM]:
     try:
         page: Response = requests.get('https://vimm.net/vault/' + section)
         soup = BeautifulSoup(page.content, 'html.parser')
-        result = soup.find(
-            'table', {'class': 'rounded centered cellpadding1 hovertable'})
-        for j in result.contents:
+        table = soup.select_one('table.rounded.centered.cellpadding1.hovertable')
+        result = table.select('tr > td[style="width:auto"] > a[href*="/vault/"]')
+        for j in result:
             if j != '\n':
                 new_soup = BeautifulSoup(str(j), 'html.parser')
-                odd = new_soup.find(attrs={'class': 'odd'})
-                even = new_soup.find(attrs={'class': 'even'})
-                if odd is not None:
-                    result_soup = BeautifulSoup(str(odd.contents[0]),
-                                                'html.parser')
-                    result = result_soup.find('a', href=True)
-                    name = result.contents[0]
-                    result = result['href']
-                    rom = models.ROM(name, result)
-                    roms.append(rom)
-                    odd = None
-                if even is not None:
-                    result_soup = BeautifulSoup(str(even.contents[0]),
-                                                'html.parser')
-                    result = result_soup.find('a', href=True)
-                    name = result.contents[0]
-                    result = result['href']
-                    rom = models.ROM(name, result)
-                    roms.append(rom)
-                    even = None
+                result_soup: BeautifulSoup = BeautifulSoup(
+                    str(new_soup), 'html.parser'
+                )
+                result = result_soup.select_one('a')
+                name = result.text
+                result = result['href']
+                rom = models.ROM(name, result)
+                roms.append(rom)
     except:
         e = sys.exc_info()[0]
     return roms
@@ -127,7 +115,7 @@ def download_file(page_url: str, download_url: str, path: str) -> str:
             f'https://vimm.net/vault{page_url}'
         }
         file: Response = requests.get(
-            f'https://download2.vimm.net/download/?mediaId={download_url}',
+            f'https://download3.vimm.net/download/?mediaId={download_url}',
             headers=headers,
             allow_redirects=True)
         if file.status_code == 200:
@@ -183,31 +171,19 @@ def get_system_search_section(
     try:
         page = requests.get(helpers.get_search_url(search_selection))
         soup: BeautifulSoup = BeautifulSoup(page.content, 'html.parser')
-        result = soup.find(
-            'table', {'class': 'rounded centered cellpadding1 hovertable'})
-        for j in result.contents:
+        table = soup.select_one('table.rounded.centered.cellpadding1.hovertable')
+        result = table.select('tr > td[style="width:auto"] > a[href*="/vault/"]')
+        for j in result:
             if j != '\n':
                 new_soup: BeautifulSoup = BeautifulSoup(str(j), 'html.parser')
-                odd = new_soup.find(attrs={'class': 'odd'})
-                even = new_soup.find(attrs={'class': 'even'})
-                if odd is not None:
-                    result_soup: BeautifulSoup = BeautifulSoup(
-                        str(odd.contents[0]), 'html.parser')
-                    result = result_soup.find('a', href=True)
-                    name = result.contents[0]
-                    result = result['href']
-                    rom = models.ROM(name, result)
-                    roms.append(rom)
-                    odd = None
-                if even is not None:
-                    result_soup = BeautifulSoup(str(even.contents[0]),
-                                                'html.parser')
-                    result = result_soup.find('a', href=True)
-                    name = result.contents[0]
-                    result = result['href']
-                    rom = models.ROM(name, result)
-                    roms.append(rom)
-                    even = None
+                result_soup: BeautifulSoup = BeautifulSoup(
+                    str(new_soup), 'html.parser'
+                )
+                result = result_soup.select_one('a')
+                name = result.text
+                result = result['href']
+                rom = models.ROM(name, result)
+                roms.append(rom)
     except BaseException:
         e = sys.exc_info()[0]
         print('Failed on system search section')

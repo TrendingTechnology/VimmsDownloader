@@ -174,20 +174,22 @@ def __create_all_w_home(path: str):
 def __create_sel_w_home(path: str, user_selections: List[str]):
     """Used in bulk mode when the user only wants selected systems if home dir is already created"""
     for x in user_selections:
+        system_path = __to_uri[__selections[int(x)][int(x)]]
         if not __check_if_system_dir_created(path,
-                                             __selections[int(x)][int(x)]):
-            __create_rom_system_dir(path, __selections[int(x)][int(x)])
-            __create_alpha_num_structure(path, __selections[int(x)][int(x)])
+                                             system_path):
+            __create_rom_system_dir(path, system_path)
+            __create_alpha_num_structure(path, system_path)
 
 
 def __create_sel_no_home(path: str, user_selections: List[str]):
     """Used in bulk mode when the user only wants selected systems"""
     __create_rom_home_dir(path)
     for x in user_selections:
+        system_path = __to_uri[__selections[int(x)][int(x)]]
         if not __check_if_system_dir_created(path,
-                                             __selections[int(x)][int(x)]):
-            __create_rom_system_dir(path, __selections[int(x)][int(x)])
-            __create_alpha_num_structure(path, __selections[int(x)][int(x)])
+                                             system_path):
+            __create_rom_system_dir(path, system_path)
+            __create_alpha_num_structure(path, system_path)
 
 
 def create_directory_structure(config: models.Config, path: str):
