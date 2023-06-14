@@ -115,7 +115,7 @@ def download_file(page_url: str, download_url: str, path: str) -> str:
             f'https://vimm.net/vault{page_url}'
         }
         file: Response = requests.get(
-            f'https://download3.vimm.net/download/?mediaId={download_url}',
+            f'{helpers.get_download_url_with_random_server_number()}/download/?mediaId={download_url}',
             headers=headers,
             allow_redirects=True)
         if file.status_code == 200:
