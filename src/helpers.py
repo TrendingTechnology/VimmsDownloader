@@ -236,6 +236,7 @@ def get_download_url_with_random_server_number() -> str:
     download_servers_available = [2,3]
     return f'https://download{random.choice(download_servers_available)}.vimm.net'
 
+
 def print_welcome():
     """Prints the welcome message..\
              hmm yes the floor is made of floor"""
